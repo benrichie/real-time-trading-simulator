@@ -24,9 +24,9 @@ public class Stock {
     //No-arg contrustor(JPA requirement)
     public Stock() {}
 
-    public Stock(String symbol, String companyname, BigDecimal currentPrice){
+    public Stock(String symbol, String companyName, BigDecimal currentPrice){
         this.symbol = symbol;
-        this.companyName = companyname;
+        this.companyName = companyName;
         this.currentPrice = currentPrice;
         this.lastUpdated = LocalDateTime.now();
     }
