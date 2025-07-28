@@ -1,0 +1,23 @@
+services:
+  trading-db:
+    container_name: postgres-trading-platform
+    image: postgres:latest
+    environment:
+      POSTGRES_DB: trading_platform
+      POSTGRES_USER: trader
+      POSTGRES_PASSWORD: trading123
+      PGDATA: /data/postgres
+    volumes:
+      - trading_db:/data/postgres
+    ports:
+      - "5433:5432"  # Different port to avoid conflicts
+    networks:
+      - trading-net
+    restart: unless-stopped
+
+volumes:
+  trading_db:
+
+networks:
+  trading-net:
+    driver: bridge
