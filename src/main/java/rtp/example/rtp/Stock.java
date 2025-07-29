@@ -21,6 +21,11 @@ public class Stock {
     @Column(nullable = false)
     private LocalDateTime lastUpdated;
 
+    @PrePersist
+    protected void onCreate() {
+        this.lastUpdated = LocalDateTime.now();
+    }
+
     //No-arg contrustor(JPA requirement)
     public Stock() {}
 
