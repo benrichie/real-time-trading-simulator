@@ -25,8 +25,8 @@ public class PortfolioController {
     }
 
     @GetMapping("/user/{userId}")
-    public Portfolio getPortfolioByUserId(@PathVariable Long id){
-        return portfolioService.getPortfolioByUserId(id);
+    public Portfolio getPortfolioByUserId(@PathVariable Long userId){
+        return portfolioService.getPortfolioByUserId(userId);
     }
 
     @PostMapping("/user/{userId}")
