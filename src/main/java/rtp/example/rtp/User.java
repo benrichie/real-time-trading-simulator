@@ -65,7 +65,7 @@ public class User {
         this.password = password;
     }
 
-    public BigDecimal getIntialBalance() {
+    public BigDecimal getInitialBalance() {
         return initialBalance;
     }
 

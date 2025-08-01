@@ -32,7 +32,7 @@ public class UserService {
 
     public BigDecimal getBalance(Long id) {
         return userRepository.findById(id)
-                .map(User::getIntialBalance)
+                .map(User::getInitialBalance)
                 .orElse(null);
     }
 }
