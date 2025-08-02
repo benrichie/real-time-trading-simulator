@@ -1,4 +1,4 @@
-package rtp.example.rtp;
+package rtp.example.rtp.User;
 
 import org.springframework.stereotype.Service;
 

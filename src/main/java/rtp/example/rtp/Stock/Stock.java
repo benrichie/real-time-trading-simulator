@@ -1,4 +1,4 @@
-package rtp.example.rtp;
+package rtp.example.rtp.Stock;
 
 import jakarta.persistence.*;
 import java.math.BigDecimal;

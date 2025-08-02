@@ -1,6 +1,9 @@
-package rtp.example.rtp;
+package rtp.example.rtp.Portfolio;
 
 import org.springframework.stereotype.Service;
+import rtp.example.rtp.User.User;
+import rtp.example.rtp.User.UserRepository;
+
 import java.util.List;
 
 @Service

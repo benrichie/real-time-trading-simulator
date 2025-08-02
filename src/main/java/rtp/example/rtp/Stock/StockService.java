@@ -1,4 +1,4 @@
-package rtp.example.rtp;
+package rtp.example.rtp.Stock;
 
 import org.springframework.stereotype.Service;
 import java.util.List;

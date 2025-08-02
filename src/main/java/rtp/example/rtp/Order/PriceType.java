@@ -1,4 +1,4 @@
-package rtp.example.rtp;
+package rtp.example.rtp.Order;
 
 public enum PriceType {
     MARKET, LIMIT
