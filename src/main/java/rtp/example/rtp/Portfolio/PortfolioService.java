@@ -4,6 +4,7 @@ import org.springframework.stereotype.Service;
 import rtp.example.rtp.User.User;
 import rtp.example.rtp.User.UserRepository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -37,6 +38,22 @@ public class PortfolioService {
 
         Portfolio portfolio = new Portfolio(userId, user.getInitialBalance());
         return portfolioRepository.save(portfolio);
+    }
+
+    public Portfolio updatePortfolio(Portfolio portfolio) {
+        return portfolioRepository.save(portfolio);
+    }
+
+    public void updateCashBalance(Long portfolioId, BigDecimal newBalance) {
+        Portfolio portfolio = getPortfolio(portfolioId);
+        portfolio.setCashBalance(newBalance);
+        updatePortfolio(portfolio);
+    }
+
+    public void updateTotalValue(Long portfolioId, BigDecimal newTotalValue) {
+        Portfolio portfolio = getPortfolio(portfolioId);
+        portfolio.setTotalValue(newTotalValue);
+        updatePortfolio(portfolio);
     }
 
     public void deletePortfolio(Long id) {
