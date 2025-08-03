@@ -32,7 +32,15 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
-    // Getters and Setters
+    public User(){}
+
+    public User(String username, String email, String password, BigDecimal initialBalance) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.initialBalance = initialBalance;
+    }
+
     public Long getId() {
         return id;
     }
