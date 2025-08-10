@@ -45,4 +45,29 @@ public class StockPrice {
         this.source = source;
         this.timestamp = LocalDateTime.now();
     }
+
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getSymbol() { return symbol; }
+    public void setSymbol(String symbol) { this.symbol = symbol; }
+
+    public BigDecimal getPrice() { return price; }
+    public void setPrice(BigDecimal price) { this.price = price; }
+
+    public BigDecimal getChangeAmount() { return changeAmount; }
+    public void setChangeAmount(BigDecimal changeAmount) { this.changeAmount = changeAmount; }
+
+    public BigDecimal getChangePercent() { return changePercent; }
+    public void setChangePercent(BigDecimal changePercent) { this.changePercent = changePercent; }
+
+    public Long getVolume() { return volume; }
+    public void setVolume(Long volume) { this.volume = volume; }
+
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public void setTimestamp(LocalDateTime timestamp) { this.timestamp = timestamp; }
+
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }
