@@ -1,13 +1,32 @@
 package rtp.example.rtp;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
+import rtp.example.rtp.Stock.StockService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+@Service
 public class RealTimeStockDataService {
 
-    private static class stockApiResponse {
+    private static final Logger logger = LoggerFactory.getLogger(RealTimeStockDataService.class);
+
+    @Value("${stock.api.key}") private String apiKey;
+    @Value("${stock.api.url}") private String apiUrl;
+
+    private final StockService stockService;
+    private final StockPriceRepository stockPriceRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final RestTemplate restTemplate;
+
+    private static class StockApiResponse {
         @JsonProperty("c")
         private BigDecimal currentPrice;
 
@@ -42,12 +61,20 @@ public class RealTimeStockDataService {
             this.timestamp = timestamp;
         }
 
-        // Getters
         public String getSymbol() { return symbol; }
         public BigDecimal getPrice() { return price; }
         public BigDecimal getChange() { return change; }
         public BigDecimal getChangePercent() { return changePercent; }
         public LocalDateTime getTimestamp() { return timestamp; }
+    }
+
+    //Constructor
+    @Autowired
+    public RealTimeStockDataService(StockService stockService, StockPriceRepository stockPriceRepository, SimpMessagingTemplate messagingTemplate, RestTemplate restTemplate) {
+        this.stockService = stockService;
+        this.stockPriceRepository = stockPriceRepository;
+        this.messagingTemplate = messagingTemplate;
+        this.restTemplate = restTemplate;
     }
 
 }
