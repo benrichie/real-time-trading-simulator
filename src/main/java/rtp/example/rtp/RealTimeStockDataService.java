@@ -28,7 +28,7 @@ public class RealTimeStockDataService {
     private SimpMessagingTemplate messagingTemplate;
     private RestTemplate restTemplate;
 
-    // Track active symbols that need real-time updates
+    // Track active symbols that need real-time update
     private final Set<String> activeSymbols = ConcurrentHashMap.newKeySet();
 
     private static class StockApiResponse {
