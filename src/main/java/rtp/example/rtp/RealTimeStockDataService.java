@@ -12,6 +12,8 @@ import rtp.example.rtp.Stock.StockService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class RealTimeStockDataService {
@@ -21,10 +23,13 @@ public class RealTimeStockDataService {
     @Value("${stock.api.key}") private String apiKey;
     @Value("${stock.api.url}") private String apiUrl;
 
-    private final StockService stockService;
-    private final StockPriceRepository stockPriceRepository;
-    private final SimpMessagingTemplate messagingTemplate;
-    private final RestTemplate restTemplate;
+    private StockService stockService;
+    private StockPriceRepository stockPriceRepository;
+    private SimpMessagingTemplate messagingTemplate;
+    private RestTemplate restTemplate;
+
+    // Track active symbols that need real-time updates
+    private final Set<String> activeSymbols = ConcurrentHashMap.newKeySet();
 
     private static class StockApiResponse {
         @JsonProperty("c")
@@ -76,5 +81,7 @@ public class RealTimeStockDataService {
         this.messagingTemplate = messagingTemplate;
         this.restTemplate = restTemplate;
     }
+
+
 
 }
