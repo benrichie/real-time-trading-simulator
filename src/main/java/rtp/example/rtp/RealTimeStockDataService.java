@@ -5,13 +5,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 import rtp.example.rtp.Stock.StockService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,8 +23,10 @@ public class RealTimeStockDataService {
 
     private static final Logger logger = LoggerFactory.getLogger(RealTimeStockDataService.class);
 
-    @Value("${stock.api.key}") private String apiKey;
-    @Value("${stock.api.url}") private String apiUrl;
+    @Value("${stock.api.key}")
+    private String apiKey;
+    @Value("${stock.api.url}")
+    private String apiUrl;
 
     private StockService stockService;
     private StockPriceRepository stockPriceRepository;
@@ -44,10 +49,21 @@ public class RealTimeStockDataService {
         @JsonProperty("v")
         private Long volume;
 
-        public BigDecimal currentprice() { return currentPrice; }
-        public BigDecimal getChange() { return change; }
-        public BigDecimal getChangePercent() { return changePercent; }
-        public Long getVolume() { return volume; }
+        public BigDecimal getCurrentPrice() {
+            return currentPrice;
+        }
+
+        public BigDecimal getChange() {
+            return change;
+        }
+
+        public BigDecimal getChangePercent() {
+            return changePercent;
+        }
+
+        public Long getVolume() {
+            return volume;
+        }
     }
 
     public static class PriceUpdateMessage {
@@ -66,11 +82,25 @@ public class RealTimeStockDataService {
             this.timestamp = timestamp;
         }
 
-        public String getSymbol() { return symbol; }
-        public BigDecimal getPrice() { return price; }
-        public BigDecimal getChange() { return change; }
-        public BigDecimal getChangePercent() { return changePercent; }
-        public LocalDateTime getTimestamp() { return timestamp; }
+        public String getSymbol() {
+            return symbol;
+        }
+
+        public BigDecimal getPrice() {
+            return price;
+        }
+
+        public BigDecimal getChange() {
+            return change;
+        }
+
+        public BigDecimal getChangePercent() {
+            return changePercent;
+        }
+
+        public LocalDateTime getTimestamp() {
+            return timestamp;
+        }
     }
 
     //Constructor
@@ -83,5 +113,31 @@ public class RealTimeStockDataService {
     }
 
 
+    // Get current stock price with caching (30 second TTL)
+    @Cacheable(value = "stock-prices", key = "#symbol")
+    public StockPrice getCurrentStockPrice(String symbol) {
+        try {
+            // First check cache/recent data
+            Optional<StockPrice> recentPrice = stockPriceRepository.findLatestBySymbol(symbol);
+            if (recentPrice.isPresent() &&
+                    recentPrice.get().getTimestamp().isAfter(LocalDateTime.now().minusSeconds(30))) {
+                return recentPrice.get();
+            }
+
+            // Fetch from external API
+            return fetchAndUpdateStockPrice(symbol);
+
+        } catch (Exception e) {
+            logger.error("Failed to get current stock price for {}", symbol, e);
+            throw new StockDataException("Unable to fetch current price for " + symbol);
+        }
+    }
+
+    private StockPrice fetchAndUpdateStockPrice(String symbol) {
+    }
+
 
 }
+
+    // Fetch from external API and update both Stock and StockPrice entities
+
