@@ -10,6 +10,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
+import rtp.example.rtp.Stock.Stock;
 import rtp.example.rtp.Stock.StockService;
 
 import java.math.BigDecimal;
@@ -156,6 +157,11 @@ public class RealTimeStockDataService {
             // Save price history
             stockPriceRepository.save(stockPrice);
 
+            // Update price history
+            Stock stock = stockService.getStock(symbol);
+            stock.setCurrentPrice(response.getCurrentPrice());
+            stock.setLastUpdated(LocalDateTime.now());
+            stockService.updateStock(stock);
         }
     }
 
