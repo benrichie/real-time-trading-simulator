@@ -134,6 +134,29 @@ public class RealTimeStockDataService {
     }
 
     private StockPrice fetchAndUpdateStockPrice(String symbol) {
+        try {
+            String url = String.format("%/quote?symbol=%s&token=%s", apiUrl, symbol, apiKey);
+
+            StockApiResponse response = restTemplate.getForObject(url, StockApiResponse.class);
+
+            if(response == null || response.getCurrentPrice() == null) {
+                throw new StockDataException("Invalid response from stock API for " + symbol);
+            }
+
+            // Create new StockPrice record
+            StockPrice stockPrice = new StockPrice(
+                    symbol,
+                    response.getCurrentPrice(),
+                    response.getChange(),
+                    response.getChangePercent(),
+                    response.getVolume(),
+                    "FINNHUB"
+            );
+
+            // Save price history
+            stockPriceRepository.save(stockPrice);
+
+        }
     }
 
 
