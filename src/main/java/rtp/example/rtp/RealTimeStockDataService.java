@@ -162,6 +162,15 @@ public class RealTimeStockDataService {
             stock.setCurrentPrice(response.getCurrentPrice());
             stock.setLastUpdated(LocalDateTime.now());
             stockService.updateStock(stock);
+
+            //broadcastPriceUpdate
+
+            logger.debug("Updated price for {}: ${}", symbol, response.getCurrentPrice());
+            return stockPrice;
+
+        } catch (Exception e) {
+            logger.error("Failed to fetch stock price for {}", symbol, e);
+            throw new StockDataException("Failed to fetch price for " + symbol + ": " + e.getMessage());
         }
     }
 
