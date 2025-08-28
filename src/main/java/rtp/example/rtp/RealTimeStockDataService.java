@@ -174,6 +174,22 @@ public class RealTimeStockDataService {
         }
     }
 
+    // Add symbol to active tracking
+    public void trackSymbol(String symbol) {
+        activeSymbols.add(symbol.toUpperCase());
+        logger.info("Now tracking symbol: {}", symbol);
+    }
+
+    // Remove symbol from active tracking
+    public void stopTrackingSymbol(String symbol) {
+        activeSymbols.remove(symbol.toUpperCase());
+        logger.info("Stopped tracking symbol: {}", symbol);
+    }
+
+    // Get all actively tracked symbols
+    public Set<String> getActiveSymbols() {
+        return Set.copyOf(activeSymbols);
+    }
 
 }
 
