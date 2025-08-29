@@ -191,6 +191,8 @@ public class RealTimeStockDataService {
         return Set.copyOf(activeSymbols);
     }
 
+    //scheduled update active stocks
+
 }
 
     // Fetch from external API and update both Stock and StockPrice entities
