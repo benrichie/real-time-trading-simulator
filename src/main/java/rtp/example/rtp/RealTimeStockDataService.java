@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -191,7 +193,24 @@ public class RealTimeStockDataService {
         return Set.copyOf(activeSymbols);
     }
 
-    //scheduled update active stocks
+    // Scheduled update for all active symbols (every 30 seconds during market hours)
+    @Scheduled(fixedRate = 30000) // 30 seconds
+    @Async
+    public void updateActiveStockPrices() {
+        if (activeSymbols.isEmpty()) {
+            return;
+        }
+
+        logger.info("Updating prices for {} active symbols", activeSymbols.size());
+
+        activeSymbols.parallelStream().forEach(symbol -> {
+            try {
+                fetchAndUpdateStockPrice(symbol);
+            } catch (Exception e) {
+                logger.warn("Failed to update price for symbol: {}", symbol, e);
+            }
+        });
+    }
 
 }
 
