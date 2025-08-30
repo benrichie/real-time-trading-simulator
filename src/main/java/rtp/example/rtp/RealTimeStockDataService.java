@@ -212,6 +212,18 @@ public class RealTimeStockDataService {
         });
     }
 
+        //update multiple stocks
+
+        public void updateMultipleStockPrices(Set<String> symbols) {
+            symbols.forEach(this::trackSymbol);
+            symbols.parallelStream().forEach(symbol -> {
+                try {
+                    fetchAndUpdateStockPrice(symbol);
+                } catch (Exception e) {
+                    logger.error("Failed to update price for {}", symbol, e);
+                }
+            });
+        }
 }
 
     // Fetch from external API and update both Stock and StockPrice entities
