@@ -242,7 +242,7 @@ public class RealTimeStockDataService {
             for(String symbol : symbols){
                 stockPriceRepository.deleteBySymbolAndTimestampBefore(symbol, cutoff);
             }
-            logger.info("Cleaned up stock price data older than {}", cutoff)
+            logger.info("Cleaned up stock price data older than {}", cutoff);
         }
 
 
