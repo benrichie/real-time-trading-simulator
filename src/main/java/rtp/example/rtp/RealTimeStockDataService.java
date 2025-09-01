@@ -6,6 +6,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -17,6 +19,7 @@ import rtp.example.rtp.Stock.StockService;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -224,7 +227,26 @@ public class RealTimeStockDataService {
                 }
             });
         }
+
+        @EventListener(ContextRefreshedEvent.class)
+        @Transactional
+        public void cleanupOnStartUp(){
+            cleanupoldPriceData();
+        }
+
+        @Transactional
+        public void cleanupoldPriceData(){
+            LocalDateTime cutoff = LocalDateTime.now().minusDays(14);
+
+            List<String> symbols = stockPriceRepository.findAllUniqueSymbols();
+            for(String symbol : symbols){
+                stockPriceRepository.deleteBySymbolAndTimestampBefore(symbol, cutoff);
+            }
+            logger.info("Cleaned up stock price data older than {}", cutoff)
+        }
+
+
 }
 
-    // Fetch from external API and update both Stock and StockPrice entities
+
 
