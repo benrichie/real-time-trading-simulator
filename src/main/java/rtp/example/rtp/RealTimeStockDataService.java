@@ -141,7 +141,7 @@ public class RealTimeStockDataService {
 
     private StockPrice fetchAndUpdateStockPrice(String symbol) {
         try {
-            String url = String.format("%/quote?symbol=%s&token=%s", apiUrl, symbol, apiKey);
+            String url = String.format("%s/quote?symbol=%s&token=%s", apiUrl, symbol, apiKey);
 
             StockApiResponse response = restTemplate.getForObject(url, StockApiResponse.class);
 
