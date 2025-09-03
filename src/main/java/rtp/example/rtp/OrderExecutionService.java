@@ -1,5 +1,7 @@
 package rtp.example.rtp;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import rtp.example.rtp.Order.*;
@@ -28,20 +30,24 @@ public class OrderExecutionService {
     private final StockService stockService;
     private final TransactionService transactionService;
     private final PortfolioCalculationService portfolioCalculationService;
+    private final RealTimeStockDataService realTimeStockDataService;
 
     public OrderExecutionService(OrderService orderService,
                                  PortfolioService portfolioService,
                                  PositionService positionService,
                                  StockService stockService,
                                  TransactionService transactionService,
-                                 PortfolioCalculationService portfolioCalculationService) {
+                                 PortfolioCalculationService portfolioCalculationService, RealTimeStockDataService realTimeStockDataService) {
         this.orderService = orderService;
         this.portfolioService = portfolioService;
         this.positionService = positionService;
         this.stockService = stockService;
         this.transactionService = transactionService;
         this.portfolioCalculationService = portfolioCalculationService;
+        this.realTimeStockDataService = realTimeStockDataService;
     }
+
+    private static final Logger logger = LoggerFactory.getLogger(OrderExecutionService.class);
 
     @Transactional
     public OrderExecutionResult executeOrder(Long orderId) {
@@ -92,14 +98,19 @@ public class OrderExecutionService {
     }
 
     private BigDecimal determineExecutionPrice(Order order, BigDecimal currentMarketPrice) {
+        try {
+            StockPrice realTimePrice = realTimeStockDataService.getCurrentStockPrice(order.getStockSymbol());
+            currentMarketPrice = realTimePrice.getPrice();
+        } catch (Exception e) {
+            logger.warn("Failed to get real-time price for {}, using cached price", order.getStockSymbol());
+            // fallback to passed currentMarketPrice
+        }
         if (order.getPriceType() == PriceType.MARKET) {
             return currentMarketPrice;
         } else { // LIMIT order
             if (order.getOrderType() == OrderType.BUY) {
-                // Buy limit: execute only if market price <= limit price
                 return currentMarketPrice.compareTo(order.getLimitPrice()) <= 0 ? currentMarketPrice : null;
             } else { // SELL
-                // Sell limit: execute only if market price >= limit price
                 return currentMarketPrice.compareTo(order.getLimitPrice()) >= 0 ? currentMarketPrice : null;
             }
         }
