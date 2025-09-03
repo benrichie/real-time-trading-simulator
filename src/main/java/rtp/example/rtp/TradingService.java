@@ -24,19 +24,21 @@ public class TradingService {
     private final PortfolioCalculationService portfolioCalculationService;
     private final PositionService positionService;
     private final StockService stockService;
+    private final RealTimeStockDataService realTimeStockDataService;
 
     public TradingService(OrderService orderService,
                           OrderExecutionService orderExecutionService,
                           PortfolioService portfolioService,
                           PortfolioCalculationService portfolioCalculationService,
                           PositionService positionService,
-                          StockService stockService) {
+                          StockService stockService, RealTimeStockDataService realTimeStockDataService) {
         this.orderService = orderService;
         this.orderExecutionService = orderExecutionService;
         this.portfolioService = portfolioService;
         this.portfolioCalculationService = portfolioCalculationService;
         this.positionService = positionService;
         this.stockService = stockService;
+        this.realTimeStockDataService = realTimeStockDataService;
     }
 
     @Transactional
@@ -261,5 +263,32 @@ public class TradingService {
 
         public boolean isValid() { return valid; }
         public String getMessage() { return message; }
+    }
+
+    public TradingQuote getRealTimeQuote(String stockSymbol, Integer quantity, OrderType orderType) {
+        try {
+            // Get real-time price data
+            StockPrice realTimePrice = realTimeStockDataService.getCurrentStockPrice(stockSymbol);
+            Stock stock = stockService.getStock(stockSymbol);
+
+            BigDecimal currentPrice = realTimePrice.getPrice();
+            BigDecimal totalValue = currentPrice.multiply(new BigDecimal(quantity));
+
+            // Start tracking this symbol for real-time updates
+            realTimeStockDataService.trackSymbol(stockSymbol);
+
+            return new TradingQuote(
+                    stockSymbol,
+                    stock.getCompanyName(),
+                    currentPrice,
+                    quantity,
+                    orderType,
+                    totalValue,
+                    realTimePrice.getTimestamp()
+            );
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error getting real-time quote for " + stockSymbol + ": " + e.getMessage());
+        }
     }
 }
