@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -36,7 +35,6 @@ public class RealTimeStockDataService {
 
     private StockService stockService;
     private StockPriceRepository stockPriceRepository;
-    private SimpMessagingTemplate messagingTemplate;
     private RestTemplate restTemplate;
 
     // Track active symbols that need real-time update
@@ -109,12 +107,11 @@ public class RealTimeStockDataService {
         }
     }
 
-    //Constructor
+    //Constructor without SimpMessagingTemplate
     @Autowired
-    public RealTimeStockDataService(StockService stockService, StockPriceRepository stockPriceRepository, SimpMessagingTemplate messagingTemplate, RestTemplate restTemplate) {
+    public RealTimeStockDataService(StockService stockService, StockPriceRepository stockPriceRepository, RestTemplate restTemplate) {
         this.stockService = stockService;
         this.stockPriceRepository = stockPriceRepository;
-        this.messagingTemplate = messagingTemplate;
         this.restTemplate = restTemplate;
     }
 
@@ -168,7 +165,8 @@ public class RealTimeStockDataService {
             stock.setLastUpdated(LocalDateTime.now());
             stockService.updateStock(stock);
 
-            //broadcastPriceUpdate
+            // Broadcasting code removed/commented out
+
 
             logger.debug("Updated price for {}: ${}", symbol, response.getCurrentPrice());
             return stockPrice;
@@ -215,38 +213,32 @@ public class RealTimeStockDataService {
         });
     }
 
-        //update multiple stocks
-
-        public void updateMultipleStockPrices(Set<String> symbols) {
-            symbols.forEach(this::trackSymbol);
-            symbols.parallelStream().forEach(symbol -> {
-                try {
-                    fetchAndUpdateStockPrice(symbol);
-                } catch (Exception e) {
-                    logger.error("Failed to update price for {}", symbol, e);
-                }
-            });
-        }
-
-        @EventListener(ContextRefreshedEvent.class)
-        @Transactional
-        public void cleanupOnStartUp(){
-            cleanupoldPriceData();
-        }
-
-        @Transactional
-        public void cleanupoldPriceData(){
-            LocalDateTime cutoff = LocalDateTime.now().minusDays(14);
-
-            List<String> symbols = stockPriceRepository.findAllUniqueSymbols();
-            for(String symbol : symbols){
-                stockPriceRepository.deleteBySymbolAndTimestampBefore(symbol, cutoff);
+    // Update multiple stocks
+    public void updateMultipleStockPrices(Set<String> symbols) {
+        symbols.forEach(this::trackSymbol);
+        symbols.parallelStream().forEach(symbol -> {
+            try {
+                fetchAndUpdateStockPrice(symbol);
+            } catch (Exception e) {
+                logger.error("Failed to update price for {}", symbol, e);
             }
-            logger.info("Cleaned up stock price data older than {}", cutoff);
+        });
+    }
+
+    @EventListener(ContextRefreshedEvent.class)
+    @Transactional
+    public void cleanupOnStartUp(){
+        cleanupoldPriceData();
+    }
+
+    @Transactional
+    public void cleanupoldPriceData(){
+        LocalDateTime cutoff = LocalDateTime.now().minusDays(14);
+
+        List<String> symbols = stockPriceRepository.findAllUniqueSymbols();
+        for(String symbol : symbols){
+            stockPriceRepository.deleteBySymbolAndTimestampBefore(symbol, cutoff);
         }
-
-
+        logger.info("Cleaned up stock price data older than {}", cutoff);
+    }
 }
-
-
-
