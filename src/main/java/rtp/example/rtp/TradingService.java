@@ -1,7 +1,9 @@
 package rtp.example.rtp;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import rtp.example.rtp.Order.*;
 import rtp.example.rtp.Portfolio.Portfolio;
 import rtp.example.rtp.PortfolioCalculationService;
@@ -41,7 +43,7 @@ public class TradingService {
         this.realTimeStockDataService = realTimeStockDataService;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TradingResult buyStock(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
         try {
             // Validate inputs
@@ -67,11 +69,12 @@ public class TradingService {
             }
 
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new TradingResult(false, "Error processing buy order: " + e.getMessage(), null);
         }
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TradingResult sellStock(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
         try {
             // Validate inputs
@@ -97,6 +100,7 @@ public class TradingService {
             }
 
         } catch (Exception e) {
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
             return new TradingResult(false, "Error processing sell order: " + e.getMessage(), null);
         }
     }
