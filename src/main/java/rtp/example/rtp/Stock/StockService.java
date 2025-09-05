@@ -35,4 +35,7 @@ public class StockService {
     }
 
 
+    public boolean existsBySymbol(String normalized) {
+        return stockRepository.existsById(normalized);
+    }
 }
