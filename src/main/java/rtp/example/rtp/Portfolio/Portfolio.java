@@ -20,6 +20,9 @@ public class Portfolio {
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal totalValue;
 
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal initialCapital;
+
     private LocalDateTime createdAt;
 
     @PrePersist
@@ -33,6 +36,7 @@ public class Portfolio {
         this.userId = userId;
         this.cashBalance = initialBalance;
         this.totalValue = initialBalance;
+        this.initialCapital = initialBalance;
     }
 
     public Long getId() {
@@ -66,6 +70,8 @@ public class Portfolio {
     public void setTotalValue(BigDecimal totalValue) {
         this.totalValue = totalValue;
     }
+
+    public BigDecimal getInitialCapital() { return initialCapital; }
 
     public LocalDateTime getCreatedAt() {
         return createdAt;

@@ -144,10 +144,11 @@ public class PortfolioCalculationService {
     }
 
     private BigDecimal getTotalInvestedAmount(Portfolio portfolio, BigDecimal totalCostBasis) {
-        // Assuming initial balance represents the total amount available initially
-        // Total invested = initial balance - current cash balance + cost basis
-        // This represents the amount actually put into the market
-        return totalCostBasis;
+        BigDecimal initialCapital = portfolio.getInitialCapital();
+        if(initialCapital == null) {
+            initialCapital = BigDecimal.ZERO;
+        }
+        return initialCapital.add(totalCostBasis);
     }
 
     // Summary DTOs
