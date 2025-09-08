@@ -22,3 +22,4 @@ public class RealTimeStockDataController {
         return ResponseEntity.ok(realTimeStockDataService.getCurrentStockPrice(symbol));
     }
 }
+//this class doesnt need to exist, keep for now
