@@ -1,5 +1,7 @@
 package rtp.example.rtp;
 
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -208,7 +210,50 @@ public class TradingService {
         return new ValidationResult(true, "Valid");
     }
 
-    // Result DTOs
+    @Scheduled(fixedRate = 15000)
+    @Async
+    public void processPendingLimitOrders() {
+        List<Order> pendingLimitOrders = orderService.getPendingOrders();
+        if (pendingLimitOrders.isEmpty()) {
+            return;
+        }
+        for (Order order : pendingLimitOrders) {
+            if (order.getPriceType() != PriceType.LIMIT) {
+                continue;
+            }
+            try {
+                // Fetch current real-time price
+                StockPrice currentPrice = realTimeStockDataService.getCurrentStockPrice(order.getStockSymbol());
+                BigDecimal marketPrice = currentPrice.getPrice();
+                boolean shouldExecute = false;
+                if (order.getOrderType() == OrderType.BUY) {
+                    // For limit buy: execute if market price <= limit price
+                    if (marketPrice.compareTo(order.getLimitPrice()) <= 0) {
+                        shouldExecute = true;
+                    }
+                } else if (order.getOrderType() == OrderType.SELL) {
+                    // For limit sell: execute if market price >= limit price
+                    if (marketPrice.compareTo(order.getLimitPrice()) >= 0) {
+                        shouldExecute = true;
+                    }
+                }
+                if (shouldExecute) {
+                    OrderExecutionService.OrderExecutionResult result = orderExecutionService.executeOrder(order.getId());
+                    if (result.isSuccess()) {
+                        // Optionally log success
+                        System.out.println("Executed limit order ID " + order.getId() + " at price " + marketPrice);
+                    } else {
+                        // Optionally log failure reason
+                        System.err.println("Failed to execute limit order ID " + order.getId() + ": " + result.getMessage());
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error processing limit order ID " + order.getId() + ": " + e.getMessage());
+            }
+        }
+    }
+
+                // Result DTOs
     public static class TradingResult {
         private final boolean success;
         private final String message;
