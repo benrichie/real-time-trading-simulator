@@ -210,6 +210,7 @@ public class TradingService {
         return new ValidationResult(true, "Valid");
     }
 
+    // Think about a more scalable option to replace this with
     @Scheduled(fixedRate = 15000)
     @Async
     public void processPendingLimitOrders() {
