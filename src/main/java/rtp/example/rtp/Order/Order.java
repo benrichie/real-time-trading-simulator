@@ -9,6 +9,9 @@ import java.util.Objects;
 @Entity
 @Table(name = "orders")
 public class Order {
+    @Version
+    private Long version;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -61,6 +64,14 @@ public class Order {
     }
 
     // Getters and setters
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
+    }
+
     public Long getId() {
         return id;
     }

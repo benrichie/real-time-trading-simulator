@@ -9,6 +9,9 @@ import java.util.Objects;
 @Table(name = "positions")
 public class Position {
 
+    @Version
+    private Long version;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -51,6 +54,14 @@ public class Position {
         this.quantity = quantity;
         this.averagePrice = averagePrice;
         this.currentValue = averagePrice.multiply(new BigDecimal(quantity));
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
+    public void setVersion(Long version) {
+        this.version = version;
     }
 
     public Long getId() {
