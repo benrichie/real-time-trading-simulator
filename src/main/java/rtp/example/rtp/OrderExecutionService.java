@@ -1,5 +1,6 @@
 package rtp.example.rtp;
 
+import jakarta.persistence.OptimisticLockException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -90,6 +91,9 @@ public class OrderExecutionService {
 
             return new OrderExecutionResult(true, "Order executed successfully", executionPrice);
 
+        } catch (OptimisticLockException ole) {
+            logger.warn("Optimistic lock conflict when executing order {}", orderId);
+            return new OrderExecutionResult(false, "Order is being processed concurrently. Please try again.");
         } catch (Exception e) {
             order.setStatus(OrderStatus.CANCELLED);
             orderService.updateOrderStatus(orderId, OrderStatus.CANCELLED);
