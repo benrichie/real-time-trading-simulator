@@ -1,5 +1,6 @@
 package rtp.example.rtp;
 
+import org.apache.coyote.Response;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rtp.example.rtp.Order.OrderType;
@@ -25,11 +26,7 @@ public class TradingController {
                 request.getLimitPrice()
         );
 
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
-        }
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/sell")
@@ -42,11 +39,7 @@ public class TradingController {
                 request.getLimitPrice()
         );
 
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
-        }
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/sell-all")
@@ -58,11 +51,7 @@ public class TradingController {
                 request.getLimitPrice()
         );
 
-        if (result.isSuccess()) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.badRequest().body(result);
-        }
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/quote")
