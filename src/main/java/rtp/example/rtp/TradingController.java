@@ -1,6 +1,9 @@
 package rtp.example.rtp;
 
-import org.apache.coyote.Response;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import rtp.example.rtp.Order.OrderType;
@@ -17,7 +20,7 @@ public class TradingController {
     }
 
     @PostMapping("/buy")
-    public ResponseEntity<TradingService.TradingResult> buyStock(@RequestBody BuyStockRequest request) {
+    public ResponseEntity<TradingService.TradingResult> buyStock(@Valid @RequestBody BuyStockRequest request) {
         TradingService.TradingResult result = tradingService.buyStock(
                 request.getPortfolioId(),
                 request.getStockSymbol(),
@@ -25,12 +28,11 @@ public class TradingController {
                 request.getPriceType(),
                 request.getLimitPrice()
         );
-
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/sell")
-    public ResponseEntity<TradingService.TradingResult> sellStock(@RequestBody SellStockRequest request) {
+    public ResponseEntity<TradingService.TradingResult> sellStock(@Valid @RequestBody SellStockRequest request) {
         TradingService.TradingResult result = tradingService.sellStock(
                 request.getPortfolioId(),
                 request.getStockSymbol(),
@@ -38,50 +40,57 @@ public class TradingController {
                 request.getPriceType(),
                 request.getLimitPrice()
         );
-
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/sell-all")
-    public ResponseEntity<TradingService.TradingResult> sellAllShares(@RequestBody SellAllRequest request) {
+    public ResponseEntity<TradingService.TradingResult> sellAllShares(@Valid @RequestBody SellAllRequest request) {
         TradingService.TradingResult result = tradingService.sellAllShares(
                 request.getPortfolioId(),
                 request.getStockSymbol(),
                 request.getPriceType(),
                 request.getLimitPrice()
         );
-
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/quote")
-    public ResponseEntity<TradingService.TradingQuote> getQuote(@RequestParam String stockSymbol,
-                                                                @RequestParam Integer quantity,
-                                                                @RequestParam OrderType orderType) {
-        try {
-            TradingService.TradingQuote quote = tradingService.getQuote(stockSymbol, quantity, orderType);
-            return ResponseEntity.ok(quote);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+    public ResponseEntity<TradingService.TradingQuote> getQuote(
+            @RequestParam @NotBlank String stockSymbol,
+            @RequestParam @Positive Integer quantity,
+            @RequestParam @NotNull OrderType orderType) {
+
+        TradingService.TradingQuote quote = tradingService.getQuote(stockSymbol, quantity, orderType);
+        return ResponseEntity.ok(quote);
     }
 
     @GetMapping("/can-afford")
-    public ResponseEntity<AffordabilityResponse> canAffordOrder(@RequestParam Long portfolioId,
-                                                                @RequestParam String stockSymbol,
-                                                                @RequestParam Integer quantity,
-                                                                @RequestParam OrderType orderType) {
+    public ResponseEntity<AffordabilityResponse> canAffordOrder(
+            @RequestParam @NotNull Long portfolioId,
+            @RequestParam @NotBlank String stockSymbol,
+            @RequestParam @Positive Integer quantity,
+            @RequestParam @NotNull OrderType orderType) {
+
         boolean canAfford = tradingService.canAffordOrder(portfolioId, stockSymbol, quantity, orderType);
         return ResponseEntity.ok(new AffordabilityResponse(canAfford,
                 canAfford ? "Order can be afforded" : "Insufficient funds or shares"));
     }
 
-    // Request DTOs
+    // Request DTOs with validation annotations
     public static class BuyStockRequest {
+        @NotNull(message = "Portfolio ID is required")
         private Long portfolioId;
+
+        @NotBlank(message = "Stock symbol is required")
         private String stockSymbol;
+
+        @NotNull(message = "Quantity is required")
+        @Positive(message = "Quantity must be positive")
         private Integer quantity;
+
+        @NotNull(message = "Price type is required")
         private PriceType priceType;
+
         private java.math.BigDecimal limitPrice;
 
         // Getters and setters
@@ -98,10 +107,19 @@ public class TradingController {
     }
 
     public static class SellStockRequest {
+        @NotNull(message = "Portfolio ID is required")
         private Long portfolioId;
+
+        @NotBlank(message = "Stock symbol is required")
         private String stockSymbol;
+
+        @NotNull(message = "Quantity is required")
+        @Positive(message = "Quantity must be positive")
         private Integer quantity;
+
+        @NotNull(message = "Price type is required")
         private PriceType priceType;
+
         private java.math.BigDecimal limitPrice;
 
         // Getters and setters
@@ -118,9 +136,15 @@ public class TradingController {
     }
 
     public static class SellAllRequest {
+        @NotNull(message = "Portfolio ID is required")
         private Long portfolioId;
+
+        @NotBlank(message = "Stock symbol is required")
         private String stockSymbol;
+
+        @NotNull(message = "Price type is required")
         private PriceType priceType;
+
         private java.math.BigDecimal limitPrice;
 
         // Getters and setters
