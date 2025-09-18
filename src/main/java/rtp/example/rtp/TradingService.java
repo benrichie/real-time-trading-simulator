@@ -1,11 +1,11 @@
 package rtp.example.rtp;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import rtp.example.rtp.Order.*;
 import rtp.example.rtp.Portfolio.Portfolio;
 import rtp.example.rtp.PortfolioCalculationService;
@@ -35,7 +35,8 @@ public class TradingService {
                           PortfolioService portfolioService,
                           PortfolioCalculationService portfolioCalculationService,
                           PositionService positionService,
-                          StockService stockService, RealTimeStockDataService realTimeStockDataService) {
+                          StockService stockService,
+                          RealTimeStockDataService realTimeStockDataService) {
         this.orderService = orderService;
         this.orderExecutionService = orderExecutionService;
         this.portfolioService = portfolioService;
@@ -47,214 +48,244 @@ public class TradingService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TradingResult buyStock(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
-        try {
-            // Validate inputs
-            ValidationResult validation = validateBuyOrder(portfolioId, stockSymbol, quantity, priceType, limitPrice);
-            if (!validation.isValid()) {
-                return new TradingResult(false, validation.getMessage(), null);
-            }
+        // Validate inputs - throw exceptions that GlobalExceptionHandler will catch
+        validateBuyOrder(portfolioId, stockSymbol, quantity, priceType, limitPrice);
 
-            // Create buy order
-            Order order = new Order(portfolioId, stockSymbol, OrderType.BUY, priceType, quantity, limitPrice);
-            Order createdOrder = orderService.createOrder(order);
+        // Create buy order
+        Order order = new Order(portfolioId, stockSymbol, OrderType.BUY, priceType, quantity, limitPrice);
+        Order createdOrder = orderService.createOrder(order);
 
-            // Execute order immediately (for market orders) or leave pending (for limit orders)
-            if (priceType == PriceType.MARKET) {
-                OrderExecutionService.OrderExecutionResult executionResult = orderExecutionService.executeOrder(createdOrder.getId());
-                if (executionResult.isSuccess()) {
-                    return new TradingResult(true, "Buy order executed successfully", createdOrder);
-                } else {
-                    return new TradingResult(false, "Failed to execute buy order: " + executionResult.getMessage(), createdOrder);
-                }
+        // Execute order immediately (for market orders) or leave pending (for limit orders)
+        if (priceType == PriceType.MARKET) {
+            OrderExecutionService.OrderExecutionResult executionResult = orderExecutionService.executeOrder(createdOrder.getId());
+            if (executionResult.isSuccess()) {
+                return new TradingResult(true, "Buy order executed successfully", createdOrder);
             } else {
-                return new TradingResult(true, "Limit buy order created and pending", createdOrder);
+                throw new RuntimeException("Failed to execute buy order: " + executionResult.getMessage());
             }
-
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return new TradingResult(false, "Error processing buy order: " + e.getMessage(), null);
+        } else {
+            return new TradingResult(true, "Limit buy order created and pending", createdOrder);
         }
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TradingResult sellStock(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
-        try {
-            // Validate inputs
-            ValidationResult validation = validateSellOrder(portfolioId, stockSymbol, quantity, priceType, limitPrice);
-            if (!validation.isValid()) {
-                return new TradingResult(false, validation.getMessage(), null);
-            }
+        // Validate inputs - throw exceptions that GlobalExceptionHandler will catch
+        validateSellOrder(portfolioId, stockSymbol, quantity, priceType, limitPrice);
 
-            // Create sell order
-            Order order = new Order(portfolioId, stockSymbol, OrderType.SELL, priceType, quantity, limitPrice);
-            Order createdOrder = orderService.createOrder(order);
+        // Create sell order
+        Order order = new Order(portfolioId, stockSymbol, OrderType.SELL, priceType, quantity, limitPrice);
+        Order createdOrder = orderService.createOrder(order);
 
-            // Execute order immediately (for market orders) or leave pending (for limit orders)
-            if (priceType == PriceType.MARKET) {
-                OrderExecutionService.OrderExecutionResult executionResult = orderExecutionService.executeOrder(createdOrder.getId());
-                if (executionResult.isSuccess()) {
-                    return new TradingResult(true, "Sell order executed successfully", createdOrder);
-                } else {
-                    return new TradingResult(false, "Failed to execute sell order: " + executionResult.getMessage(), createdOrder);
-                }
+        // Execute order immediately (for market orders) or leave pending (for limit orders)
+        if (priceType == PriceType.MARKET) {
+            OrderExecutionService.OrderExecutionResult executionResult = orderExecutionService.executeOrder(createdOrder.getId());
+            if (executionResult.isSuccess()) {
+                return new TradingResult(true, "Sell order executed successfully", createdOrder);
             } else {
-                return new TradingResult(true, "Limit sell order created and pending", createdOrder);
+                throw new RuntimeException("Failed to execute sell order: " + executionResult.getMessage());
             }
-
-        } catch (Exception e) {
-            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
-            return new TradingResult(false, "Error processing sell order: " + e.getMessage(), null);
+        } else {
+            return new TradingResult(true, "Limit sell order created and pending", createdOrder);
         }
     }
 
     @Transactional
     public TradingResult sellAllShares(Long portfolioId, String stockSymbol, PriceType priceType, BigDecimal limitPrice) {
-        try {
-            Optional<Position> position = positionService.getPositionByPortfolioAndStock(portfolioId, stockSymbol);
-            if (position.isEmpty()) {
-                return new TradingResult(false, "No position found for " + stockSymbol, null);
-            }
-
-            return sellStock(portfolioId, stockSymbol, position.get().getQuantity(), priceType, limitPrice);
-
-        } catch (Exception e) {
-            return new TradingResult(false, "Error selling all shares: " + e.getMessage(), null);
+        Optional<Position> position = positionService.getPositionByPortfolioAndStock(portfolioId, stockSymbol);
+        if (position.isEmpty()) {
+            throw new EntityNotFoundException("No position found for stock: " + stockSymbol);
         }
+
+        return sellStock(portfolioId, stockSymbol, position.get().getQuantity(), priceType, limitPrice);
     }
 
     public TradingQuote getQuote(String stockSymbol, Integer quantity, OrderType orderType) {
-        try {
-            Stock stock = stockService.getStock(stockSymbol);
-            BigDecimal currentPrice = stock.getCurrentPrice();
-            BigDecimal totalValue = currentPrice.multiply(new BigDecimal(quantity));
-
-            return new TradingQuote(
-                    stockSymbol,
-                    stock.getCompanyName(),
-                    currentPrice,
-                    quantity,
-                    orderType,
-                    totalValue,
-                    stock.getLastUpdated()
-            );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error getting quote for " + stockSymbol + ": " + e.getMessage());
+        if (stockSymbol == null || stockSymbol.trim().isEmpty()) {
+            throw new IllegalArgumentException("Stock symbol cannot be null or empty");
         }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (orderType == null) {
+            throw new IllegalArgumentException("Order type cannot be null");
+        }
+
+        Stock stock = stockService.getStock(stockSymbol);
+        BigDecimal currentPrice = realTimeStockDataService.getCurrentStockPrice(stockSymbol).getPrice();
+        BigDecimal totalValue = currentPrice.multiply(new BigDecimal(quantity));
+
+        return new TradingQuote(
+                stockSymbol,
+                stock.getCompanyName(),
+                currentPrice,
+                quantity,
+                orderType,
+                totalValue,
+                stock.getLastUpdated()
+        );
     }
 
     public boolean canAffordOrder(Long portfolioId, String stockSymbol, Integer quantity, OrderType orderType) {
-        try {
-            Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
-
-            if (orderType == OrderType.BUY) {
-                Stock stock = stockService.getStock(stockSymbol);
-                BigDecimal totalCost = stock.getCurrentPrice().multiply(new BigDecimal(quantity));
-                return portfolio.getCashBalance().compareTo(totalCost) >= 0;
-            } else { // SELL
-                Optional<Position> position = positionService.getPositionByPortfolioAndStock(portfolioId, stockSymbol);
-                return position.isPresent() && position.get().getQuantity() >= quantity;
-            }
-
-        } catch (Exception e) {
-            return false;
+        if (portfolioId == null) {
+            throw new IllegalArgumentException("Portfolio ID cannot be null");
         }
-    }
-
-    private ValidationResult validateBuyOrder(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
-        if (quantity <= 0) {
-            return new ValidationResult(false, "Quantity must be positive");
+        if (stockSymbol == null || stockSymbol.trim().isEmpty()) {
+            throw new IllegalArgumentException("Stock symbol cannot be null or empty");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (orderType == null) {
+            throw new IllegalArgumentException("Order type cannot be null");
         }
 
-        if (priceType == PriceType.LIMIT && (limitPrice == null || limitPrice.compareTo(BigDecimal.ZERO) <= 0)) {
-            return new ValidationResult(false, "Limit price must be positive for limit orders");
-        }
+        Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
 
-        try {
-            Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
+        if (orderType == OrderType.BUY) {
             Stock stock = stockService.getStock(stockSymbol);
-
-            BigDecimal estimatedCost = priceType == PriceType.LIMIT ? limitPrice : stock.getCurrentPrice();
-            BigDecimal totalCost = estimatedCost.multiply(new BigDecimal(quantity));
-
-            if (portfolio.getCashBalance().compareTo(totalCost) < 0) {
-                return new ValidationResult(false, "Insufficient cash balance");
-            }
-
-        } catch (Exception e) {
-            return new ValidationResult(false, "Error validating order: " + e.getMessage());
+            BigDecimal totalCost = stock.getCurrentPrice().multiply(new BigDecimal(quantity));
+            return portfolio.getCashBalance().compareTo(totalCost) >= 0;
+        } else { // SELL
+            Optional<Position> position = positionService.getPositionByPortfolioAndStock(portfolioId, stockSymbol);
+            return position.isPresent() && position.get().getQuantity() >= quantity;
         }
-
-        return new ValidationResult(true, "Valid");
     }
 
-    private ValidationResult validateSellOrder(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
-        if (quantity <= 0) {
-            return new ValidationResult(false, "Quantity must be positive");
+    private void validateBuyOrder(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
+        if (portfolioId == null) {
+            throw new IllegalArgumentException("Portfolio ID cannot be null");
         }
-
+        if (stockSymbol == null || stockSymbol.trim().isEmpty()) {
+            throw new IllegalArgumentException("Stock symbol cannot be null or empty");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (priceType == null) {
+            throw new IllegalArgumentException("Price type cannot be null");
+        }
         if (priceType == PriceType.LIMIT && (limitPrice == null || limitPrice.compareTo(BigDecimal.ZERO) <= 0)) {
-            return new ValidationResult(false, "Limit price must be positive for limit orders");
+            throw new IllegalArgumentException("Limit price must be positive for limit orders");
         }
 
-        try {
-            Optional<Position> position = positionService.getPositionByPortfolioAndStock(portfolioId, stockSymbol);
-            if (position.isEmpty() || position.get().getQuantity() < quantity) {
-                return new ValidationResult(false, "Insufficient shares to sell");
-            }
+        // These will throw EntityNotFoundException if not found
+        Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
+        Stock stock = stockService.getStock(stockSymbol);
 
-        } catch (Exception e) {
-            return new ValidationResult(false, "Error validating order: " + e.getMessage());
+        BigDecimal estimatedCost = priceType == PriceType.LIMIT ? limitPrice : stock.getCurrentPrice();
+        BigDecimal totalCost = estimatedCost.multiply(new BigDecimal(quantity));
+
+        if (portfolio.getCashBalance().compareTo(totalCost) < 0) {
+            throw new IllegalArgumentException("Insufficient cash balance");
+        }
+    }
+
+    private void validateSellOrder(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
+        if (portfolioId == null) {
+            throw new IllegalArgumentException("Portfolio ID cannot be null");
+        }
+        if (stockSymbol == null || stockSymbol.trim().isEmpty()) {
+            throw new IllegalArgumentException("Stock symbol cannot be null or empty");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (priceType == null) {
+            throw new IllegalArgumentException("Price type cannot be null");
+        }
+        if (priceType == PriceType.LIMIT && (limitPrice == null || limitPrice.compareTo(BigDecimal.ZERO) <= 0)) {
+            throw new IllegalArgumentException("Limit price must be positive for limit orders");
         }
 
-        return new ValidationResult(true, "Valid");
+        Optional<Position> position = positionService.getPositionByPortfolioAndStock(portfolioId, stockSymbol);
+        if (position.isEmpty() || position.get().getQuantity() < quantity) {
+            throw new IllegalArgumentException("Insufficient shares to sell");
+        }
+    }
+
+    public TradingQuote getRealTimeQuote(String stockSymbol, Integer quantity, OrderType orderType) {
+        if (stockSymbol == null || stockSymbol.trim().isEmpty()) {
+            throw new IllegalArgumentException("Stock symbol cannot be null or empty");
+        }
+        if (quantity == null || quantity <= 0) {
+            throw new IllegalArgumentException("Quantity must be positive");
+        }
+        if (orderType == null) {
+            throw new IllegalArgumentException("Order type cannot be null");
+        }
+
+        // Get real-time price data - this may throw StockDataException
+        StockPrice realTimePrice = realTimeStockDataService.getCurrentStockPrice(stockSymbol);
+        Stock stock = stockService.getStock(stockSymbol);
+
+        BigDecimal currentPrice = realTimePrice.getPrice();
+        BigDecimal totalValue = currentPrice.multiply(new BigDecimal(quantity));
+
+        // Start tracking this symbol for real-time updates
+        realTimeStockDataService.trackSymbol(stockSymbol);
+
+        return new TradingQuote(
+                stockSymbol,
+                stock.getCompanyName(),
+                currentPrice,
+                quantity,
+                orderType,
+                totalValue,
+                realTimePrice.getTimestamp()
+        );
     }
 
     // Think about a more scalable option to replace this with
     @Scheduled(fixedRate = 15000)
     @Async
     public void processPendingLimitOrders() {
-        List<Order> pendingLimitOrders = orderService.getPendingOrders();
-        if (pendingLimitOrders.isEmpty()) {
-            return;
-        }
-        for (Order order : pendingLimitOrders) {
-            if (order.getPriceType() != PriceType.LIMIT) {
-                continue;
+        try {
+            List<Order> pendingLimitOrders = orderService.getPendingOrders();
+            if (pendingLimitOrders.isEmpty()) {
+                return;
             }
-            try {
-                // Fetch current real-time price
-                StockPrice currentPrice = realTimeStockDataService.getCurrentStockPrice(order.getStockSymbol());
-                BigDecimal marketPrice = currentPrice.getPrice();
-                boolean shouldExecute = false;
-                if (order.getOrderType() == OrderType.BUY) {
-                    // For limit buy: execute if market price <= limit price
-                    if (marketPrice.compareTo(order.getLimitPrice()) <= 0) {
-                        shouldExecute = true;
-                    }
-                } else if (order.getOrderType() == OrderType.SELL) {
-                    // For limit sell: execute if market price >= limit price
-                    if (marketPrice.compareTo(order.getLimitPrice()) >= 0) {
-                        shouldExecute = true;
-                    }
+            for (Order order : pendingLimitOrders) {
+                if (order.getPriceType() != PriceType.LIMIT) {
+                    continue;
                 }
-                if (shouldExecute) {
-                    OrderExecutionService.OrderExecutionResult result = orderExecutionService.executeOrder(order.getId());
-                    if (result.isSuccess()) {
-                        // Optionally log success
-                        System.out.println("Executed limit order ID " + order.getId() + " at price " + marketPrice);
-                    } else {
-                        // Optionally log failure reason
-                        System.err.println("Failed to execute limit order ID " + order.getId() + ": " + result.getMessage());
+                try {
+                    // Fetch current real-time price
+                    StockPrice currentPrice = realTimeStockDataService.getCurrentStockPrice(order.getStockSymbol());
+                    BigDecimal marketPrice = currentPrice.getPrice();
+                    boolean shouldExecute = false;
+                    if (order.getOrderType() == OrderType.BUY) {
+                        // For limit buy: execute if market price <= limit price
+                        if (marketPrice.compareTo(order.getLimitPrice()) <= 0) {
+                            shouldExecute = true;
+                        }
+                    } else if (order.getOrderType() == OrderType.SELL) {
+                        // For limit sell: execute if market price >= limit price
+                        if (marketPrice.compareTo(order.getLimitPrice()) >= 0) {
+                            shouldExecute = true;
+                        }
                     }
+                    if (shouldExecute) {
+                        OrderExecutionService.OrderExecutionResult result = orderExecutionService.executeOrder(order.getId());
+                        if (result.isSuccess()) {
+                            // Optionally log success
+                            System.out.println("Executed limit order ID " + order.getId() + " at price " + marketPrice);
+                        } else {
+                            // Optionally log failure reason
+                            System.err.println("Failed to execute limit order ID " + order.getId() + ": " + result.getMessage());
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error processing limit order ID " + order.getId() + ": " + e.getMessage());
                 }
-            } catch (Exception e) {
-                System.err.println("Error processing limit order ID " + order.getId() + ": " + e.getMessage());
             }
+        } catch (Exception e) {
+            // Log the error but don't let it crash the scheduled task
+            System.err.println("Error in processPendingLimitOrders: " + e.getMessage());
         }
     }
 
-                // Result DTOs
+    // Result DTOs
     public static class TradingResult {
         private final boolean success;
         private final String message;
@@ -300,45 +331,5 @@ public class TradingService {
         public OrderType getOrderType() { return orderType; }
         public BigDecimal getTotalValue() { return totalValue; }
         public java.time.LocalDateTime getLastUpdated() { return lastUpdated; }
-    }
-
-    private static class ValidationResult {
-        private final boolean valid;
-        private final String message;
-
-        public ValidationResult(boolean valid, String message) {
-            this.valid = valid;
-            this.message = message;
-        }
-
-        public boolean isValid() { return valid; }
-        public String getMessage() { return message; }
-    }
-
-    public TradingQuote getRealTimeQuote(String stockSymbol, Integer quantity, OrderType orderType) {
-        try {
-            // Get real-time price data
-            StockPrice realTimePrice = realTimeStockDataService.getCurrentStockPrice(stockSymbol);
-            Stock stock = stockService.getStock(stockSymbol);
-
-            BigDecimal currentPrice = realTimePrice.getPrice();
-            BigDecimal totalValue = currentPrice.multiply(new BigDecimal(quantity));
-
-            // Start tracking this symbol for real-time updates
-            realTimeStockDataService.trackSymbol(stockSymbol);
-
-            return new TradingQuote(
-                    stockSymbol,
-                    stock.getCompanyName(),
-                    currentPrice,
-                    quantity,
-                    orderType,
-                    totalValue,
-                    realTimePrice.getTimestamp()
-            );
-
-        } catch (Exception e) {
-            throw new RuntimeException("Error getting real-time quote for " + stockSymbol + ": " + e.getMessage());
-        }
     }
 }
