@@ -27,11 +27,11 @@ public class StockService {
 
     public void deleteStock(String symbol) { stockRepository.deleteById(symbol); }
 
-    public Stock updateStock(Stock stock){
+    public void updateStock(Stock stock){
         if(!stockRepository.existsById(stock.getSymbol())){
             throw new RuntimeException("Stock not found: " + stock.getSymbol());
         }
-        return stockRepository.save(stock);
+        stockRepository.save(stock);
     }
 
 
