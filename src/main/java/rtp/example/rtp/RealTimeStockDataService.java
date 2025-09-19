@@ -105,14 +105,18 @@ public class RealTimeStockDataService {
             Optional<StockPrice> recentPrice = stockPriceRepository.findLatestBySymbol(symbol);
             if (recentPrice.isPresent() &&
                     recentPrice.get().getTimestamp().isAfter(LocalDateTime.now().minusSeconds(30))) {
+                logger.debug("Returning cached price for symbol {}", symbol);
                 return recentPrice.get();
+            } else {
+                logger.warn("Cached price for symbol {} is stale or missing, fetching fresh data", symbol);
+                return fetchAndUpdateStockPrice(symbol);
             }
-            return fetchAndUpdateStockPrice(symbol);
         } catch (Exception e) {
             logger.error("Failed to get current stock price for {}", symbol, e);
             throw new StockDataException("Unable to fetch current price for " + symbol, e);
         }
     }
+
 
     // Fetch from external API, persist, update Stock entity (steps 3-4)
     private StockPrice fetchAndUpdateStockPrice(String symbol) {

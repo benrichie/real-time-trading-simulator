@@ -106,7 +106,8 @@ public class OrderExecutionService {
             StockPrice realTimePrice = realTimeStockDataService.getCurrentStockPrice(order.getStockSymbol());
             currentMarketPrice = realTimePrice.getPrice();
         } catch (Exception e) {
-            logger.warn("Failed to get real-time price for {}, using cached price", order.getStockSymbol());
+            // Log error with stack trace when falling back to cached price
+            logger.error("Failed to get real-time price for {}, falling back to cached price", order.getStockSymbol(), e);
             // fallback to passed currentMarketPrice
         }
         if (order.getPriceType() == PriceType.MARKET) {
@@ -119,6 +120,7 @@ public class OrderExecutionService {
             }
         }
     }
+
 
     private ValidationResult validateOrderExecution(Order order, BigDecimal executionPrice) {
         Portfolio portfolio = portfolioService.getPortfolio(order.getPortfolioId());
