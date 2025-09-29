@@ -43,6 +43,7 @@ public class OrderController {
         return orderService.getPendingOrders();
     }
 
+    // refactor for global exception
     @PostMapping
     public ResponseEntity<OrderCreationResponse> createOrder(@RequestBody OrderCreationRequest request) {
         try {
@@ -128,7 +129,7 @@ public class OrderController {
             return ResponseEntity.badRequest().body("Error deleting order: " + e.getMessage());
         }
     }
-
+// refactor for global exception
     private ValidationResult validateOrderCreation(OrderCreationRequest request) {
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
             return new ValidationResult(false, "Quantity must be positive");
