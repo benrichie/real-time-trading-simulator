@@ -1,4 +1,4 @@
-package rtp.example.rtp;
+package rtp.example.rtp.Security;
 
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

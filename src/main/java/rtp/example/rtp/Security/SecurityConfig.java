@@ -1,4 +1,4 @@
-package rtp.example.rtp;
+package rtp.example.rtp.Security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
