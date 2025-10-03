@@ -1,4 +1,4 @@
-package rtp.example.rtp.Security;
+package rtp.example.rtp.JwtInfrastructure;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

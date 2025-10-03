@@ -1,4 +1,4 @@
-package rtp.example.rtp.Security;
+package rtp.example.rtp.JwtInfrastructure;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
