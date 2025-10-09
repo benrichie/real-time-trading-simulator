@@ -1,4 +1,4 @@
 package rtp.example.rtp.AuthenticationLayer;
 
-public class AuthenticationLayer {
+public class AuthenticationService {
 }
