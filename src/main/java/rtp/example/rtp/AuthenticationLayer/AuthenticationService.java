@@ -36,6 +36,16 @@ public class AuthenticationService {
                 request.getInitialBalance() != null ? request.getInitialBalance() : new java.math.BigDecimal("10000.00")
         );
 
+        if(request.getRole() != null){
+            user.setRole(request.getRole());
+        }
+
+        userRepository.save(user);
+        var jwtToken = jwtService.generateToken(user);
+
+        return AuthenticationResponse.builder()
+                .accessToken(jwtToken)
+                .build();
 
     }
 }
