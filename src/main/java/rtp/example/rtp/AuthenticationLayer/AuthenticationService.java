@@ -1,6 +1,7 @@
 package rtp.example.rtp.AuthenticationLayer;
 
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import rtp.example.rtp.JwtInfrastructure.JwtService;
 import rtp.example.rtp.User.User;
@@ -47,5 +48,22 @@ public class AuthenticationService {
                 .accessToken(jwtToken)
                 .build();
 
+    }
+
+    public AuthenticationResponse authenticate(AuthenticationRequest request){
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        request.getUsername(),
+                        request.getPassword()
+                )
+        );
+
+        var user = userRepository.findByUsername(request.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid username or password"));
+
+        var jwtToken = jwtService.generateToken(user);
+        return AuthenticationResponse.builder()
+                .accessToken(jwtToken)
+                .build();
     }
 }
