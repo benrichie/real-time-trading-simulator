@@ -3,10 +3,12 @@ package rtp.example.rtp.AuthenticationLayer;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 import rtp.example.rtp.JwtInfrastructure.JwtService;
 import rtp.example.rtp.User.User;
 import rtp.example.rtp.User.UserRepository;
 
+@Service
 public class AuthenticationService {
 
     private final UserRepository userRepository;
