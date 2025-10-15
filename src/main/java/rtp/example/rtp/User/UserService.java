@@ -29,7 +29,7 @@ public class UserService {
     //    return userRepository.save(user);
     // }
 
-
+//this is only getting initial balance wtf?
     public BigDecimal getBalance(Long id) {
         return userRepository.findById(id)
                 .map(User::getInitialBalance)
