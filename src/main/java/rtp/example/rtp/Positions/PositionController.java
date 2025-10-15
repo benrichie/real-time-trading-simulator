@@ -19,7 +19,7 @@ public class PositionController {
         this.positionService = positionService;
         this.portfolioCalculationService = portfolioCalculationService;
     }
-
+    // make this so that only admin can use it
     @GetMapping
     public List<Position> getAllPositions() {
         return positionService.getAllPositions();
