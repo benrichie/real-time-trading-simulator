@@ -13,6 +13,7 @@ public class UserController {
 
     public UserController(UserService userService) { this.userService = userService; }
 
+    // restrict this to admin only
     @GetMapping
     public List<User> getAllUsers(){ return userService.getAllUsers();}
 
