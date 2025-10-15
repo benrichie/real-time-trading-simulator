@@ -25,9 +25,9 @@ public class UserService {
         userRepository.deleteById(id);
     }
 
-    public User createUser(User user) {
-        return userRepository.save(user);
-    }
+    // public User createUser(User user) {
+    //    return userRepository.save(user);
+    // }
 
 
     public BigDecimal getBalance(Long id) {

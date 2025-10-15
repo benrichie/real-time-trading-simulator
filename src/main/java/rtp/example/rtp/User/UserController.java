@@ -26,16 +26,17 @@ public class UserController {
         userService.deleteUser(id);
     }
 
-    @PostMapping
-    public User createUser(@RequestBody User user){
-        return userService.createUser(user);
-    }
+    // @PostMapping
+    //public User createUser(@RequestBody User user){
+    //    return userService.createUser(user);
+   // }
 
-    @PutMapping("/{id}")
-    public User updateUser(@PathVariable Long id, @RequestBody User user){
-        user.setId(id);
-        return userService.createUser(user);
-    }
+    // this needs to be fixed
+   // @PutMapping("/{id}")
+  //  public User updateUser(@PathVariable Long id, @RequestBody User user){
+   //     user.setId(id);
+   //     return userService.createUser(user);
+    // }
 
     @GetMapping("/{id}/balance")
     public BigDecimal getBalance(@PathVariable Long id){
