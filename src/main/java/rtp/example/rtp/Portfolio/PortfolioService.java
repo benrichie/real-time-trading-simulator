@@ -1,5 +1,7 @@
 package rtp.example.rtp.Portfolio;
 
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import rtp.example.rtp.User.User;
 import rtp.example.rtp.User.UserRepository;
@@ -21,6 +23,13 @@ public class PortfolioService {
     // public List<Portfolio> getAllPortfolios() {
     //    return portfolioRepository.findAll();
     //}
+
+    private Long getCurrentUserId(){
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        return user.getId();
+    }
 
     public Portfolio getPortfolio(Long id) {
         return portfolioRepository.findById(id)
