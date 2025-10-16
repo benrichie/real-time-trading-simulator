@@ -18,9 +18,9 @@ public class PortfolioService {
         this.userRepository = userRepository;
     }
 
-    public List<Portfolio> getAllPortfolios() {
-        return portfolioRepository.findAll();
-    }
+    // public List<Portfolio> getAllPortfolios() {
+    //    return portfolioRepository.findAll();
+    //}
 
     public Portfolio getPortfolio(Long id) {
         return portfolioRepository.findById(id)
