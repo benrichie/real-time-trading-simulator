@@ -19,11 +19,6 @@ public class PortfolioController {
         this.portfolioCalculationService = portfolioCalculationService;
     }
 
-    @GetMapping
-    public List<Portfolio> getAllPortfolios(){
-        return portfolioService.getAllPortfolios();
-    }
-
     @GetMapping("/{id}")
     public Portfolio getPortfolio(@PathVariable Long id){
         return portfolioService.getPortfolio(id);
