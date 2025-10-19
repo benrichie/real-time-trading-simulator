@@ -9,7 +9,7 @@ import rtp.example.rtp.User.User;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/portfolios")
+@RequestMapping("api/v1/portfolios")
 public class PortfolioController {
 
     private final PortfolioService portfolioService;
