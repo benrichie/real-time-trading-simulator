@@ -1,8 +1,10 @@
 package rtp.example.rtp.Portfolio;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import rtp.example.rtp.PortfolioCalculationService;
+import rtp.example.rtp.User.User;
 
 import java.util.List;
 
@@ -19,73 +21,70 @@ public class PortfolioController {
         this.portfolioCalculationService = portfolioCalculationService;
     }
 
+    @GetMapping
+    public List<Portfolio> getAllPortfolios(@AuthenticationPrincipal User user) {
+        // Now returns only current user's portfolios
+        return portfolioService.getAllPortfolios();
+    }
+
     @GetMapping("/{id}")
-    public Portfolio getPortfolio(@PathVariable Long id){
+    public Portfolio getPortfolio(@PathVariable Long id) {
+        // Service layer checks ownership
         return portfolioService.getPortfolio(id);
     }
 
-    @GetMapping("/user/{userId}")
-    public Portfolio getPortfolioByUserId(@PathVariable Long userId){
-        return portfolioService.getPortfolioByUserId(userId);
+    @GetMapping("/me")
+    public Portfolio getMyPortfolio(@AuthenticationPrincipal User user) {
+        // New endpoint - get current user's portfolio
+        return portfolioService.getPortfolioByUserId(user.getId());
     }
 
-    @PostMapping("/user/{userId}")
-    public Portfolio createPortfolioForUser(@PathVariable Long userId){
-        return portfolioService.createPortfolio(userId);
+    @PostMapping("/me")
+    public Portfolio createMyPortfolio(@AuthenticationPrincipal User user) {
+        // Create portfolio for current user only
+        return portfolioService.createPortfolio(user.getId());
     }
 
     @GetMapping("/{id}/summary")
     public ResponseEntity<PortfolioCalculationService.PortfolioSummary> getPortfolioSummary(@PathVariable Long id) {
-        try {
-            PortfolioCalculationService.PortfolioSummary summary = portfolioCalculationService.getPortfolioSummary(id);
-            return ResponseEntity.ok(summary);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        // Service layer checks ownership
+        portfolioService.getPortfolio(id); // Verify access first
+        PortfolioCalculationService.PortfolioSummary summary = portfolioCalculationService.getPortfolioSummary(id);
+        return ResponseEntity.ok(summary);
     }
 
     @PostMapping("/{id}/recalculate")
     public ResponseEntity<String> recalculatePortfolio(@PathVariable Long id) {
-        try {
-            portfolioCalculationService.recalculatePortfolio(id);
-            return ResponseEntity.ok("Portfolio recalculated successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error recalculating portfolio: " + e.getMessage());
-        }
+        portfolioService.getPortfolio(id); // Verify access first
+        portfolioCalculationService.recalculatePortfolio(id);
+        return ResponseEntity.ok("Portfolio recalculated successfully");
     }
 
     @GetMapping("/{id}/performance")
     public ResponseEntity<PortfolioPerformance> getPortfolioPerformance(@PathVariable Long id) {
-        try {
-            PortfolioCalculationService.PortfolioSummary summary = portfolioCalculationService.getPortfolioSummary(id);
-            Portfolio portfolio = portfolioService.getPortfolio(id);
+        portfolioService.getPortfolio(id); // Verify access first
+        PortfolioCalculationService.PortfolioSummary summary = portfolioCalculationService.getPortfolioSummary(id);
+        Portfolio portfolio = portfolioService.getPortfolio(id);
 
-            PortfolioPerformance performance = new PortfolioPerformance(
-                    summary.getPortfolioId(),
-                    summary.getTotalPortfolioValue(),
-                    summary.getUnrealizedPnL(),
-                    summary.getPercentageReturn(),
-                    summary.getCashBalance(),
-                    summary.getTotalPositionsValue(),
-                    summary.getTotalCostBasis(),
-                    calculateCashPercentage(summary.getCashBalance(), summary.getTotalPortfolioValue()),
-                    calculatePositionsPercentage(summary.getTotalPositionsValue(), summary.getTotalPortfolioValue())
-            );
+        PortfolioPerformance performance = new PortfolioPerformance(
+                summary.getPortfolioId(),
+                summary.getTotalPortfolioValue(),
+                summary.getUnrealizedPnL(),
+                summary.getPercentageReturn(),
+                summary.getCashBalance(),
+                summary.getTotalPositionsValue(),
+                summary.getTotalCostBasis(),
+                calculateCashPercentage(summary.getCashBalance(), summary.getTotalPortfolioValue()),
+                calculatePositionsPercentage(summary.getTotalPositionsValue(), summary.getTotalPortfolioValue())
+        );
 
-            return ResponseEntity.ok(performance);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
+        return ResponseEntity.ok(performance);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deletePortfolio(@PathVariable Long id) {
-        try {
-            portfolioService.deletePortfolio(id);
-            return ResponseEntity.ok("Portfolio deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error deleting portfolio: " + e.getMessage());
-        }
+        portfolioService.deletePortfolio(id);
+        return ResponseEntity.ok("Portfolio deleted successfully");
     }
 
     private java.math.BigDecimal calculateCashPercentage(java.math.BigDecimal cashBalance, java.math.BigDecimal totalValue) {
@@ -104,7 +103,6 @@ public class PortfolioController {
                 .multiply(new java.math.BigDecimal("100"));
     }
 
-    // Performance DTO
     public static class PortfolioPerformance {
         private final Long portfolioId;
         private final java.math.BigDecimal totalValue;
