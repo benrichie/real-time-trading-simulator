@@ -27,6 +27,7 @@ public class PortfolioCalculationService {
         this.stockService = stockService;
     }
 
+
     public void recalculatePortfolio(Long portfolioId) {
         // getPortfolio already verifies ownership
         Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
