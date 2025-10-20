@@ -28,7 +28,10 @@ public class PortfolioCalculationService {
     }
 
     public void recalculatePortfolio(Long portfolioId) {
+        // getPortfolio already verifies ownership
         Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
+
+        // getPositionsByPortfolio already verifies ownership through portfolioService
         List<Position> positions = positionService.getPositionsByPortfolio(portfolioId);
 
         // Calculate total market value of all positions
@@ -38,6 +41,7 @@ public class PortfolioCalculationService {
         BigDecimal totalPortfolioValue = portfolio.getCashBalance().add(totalPositionsValue);
         portfolio.setTotalValue(totalPortfolioValue);
 
+        // updatePortfolio already verifies ownership
         portfolioService.updatePortfolio(portfolio);
 
         // Update individual position current values
@@ -45,6 +49,7 @@ public class PortfolioCalculationService {
     }
 
     public PortfolioSummary getPortfolioSummary(Long portfolioId) {
+        // Ownership verification happens in getPortfolio
         Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
         List<Position> positions = positionService.getPositionsByPortfolio(portfolioId);
 
@@ -65,6 +70,7 @@ public class PortfolioCalculationService {
     }
 
     public PositionSummary getPositionSummary(Long positionId) {
+        // Ownership verification happens in getPosition
         Position position = positionService.getPosition(positionId);
         Stock stock = stockService.getStock(position.getStockSymbol());
 
@@ -115,6 +121,7 @@ public class PortfolioCalculationService {
                 Stock stock = stockService.getStock(position.getStockSymbol());
                 BigDecimal currentValue = stock.getCurrentPrice().multiply(new BigDecimal(position.getQuantity()));
                 position.setCurrentValue(currentValue);
+                // updatePosition already verifies ownership
                 positionService.updatePosition(position);
             } catch (Exception e) {
                 // If stock price cannot be fetched, keep existing current value
