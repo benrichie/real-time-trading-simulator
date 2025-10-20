@@ -9,4 +9,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByPortfolioId(Long portfolioId);
     List<Order> findByStatus(OrderStatus status);
     List<Order> findByPortfolioIdAndStatus(Long portfolioId, OrderStatus status);
+    List<Order> findByStatusAndPortfolioIdIn(OrderStatus status, List<Long> portfolioIds);
+    List<Order> findByPortfolioIdIn(List<Long> portfolioIds);
 }

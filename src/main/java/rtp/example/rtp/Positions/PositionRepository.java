@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface PositionRepository extends JpaRepository<Position, Long> {
     List<Position> findByPortfolioId(Long portfolioId);
     Optional<Position> findByPortfolioIdAndStockSymbol(Long portfolioId, String stockSymbol);
+    List<Position> findByPortfolioIdIn(List<Long> portfolioIds);
 }

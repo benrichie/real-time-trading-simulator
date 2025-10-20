@@ -8,4 +8,5 @@ import java.util.List;
 public interface TransactionRepository extends JpaRepository<Transaction, Long> {
     List<Transaction> findByPortfolioId(Long portfolioId);
     List<Transaction> findByOrderId(Long orderId);
+    List<Transaction> findByPortfolioIdIn(List<Long> portfolioIds);
 }
