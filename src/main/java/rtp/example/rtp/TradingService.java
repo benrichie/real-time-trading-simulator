@@ -236,55 +236,6 @@ public class TradingService {
         );
     }
 
-    // Think about a more scalable option to replace this with
-    @Scheduled(fixedRate = 15000)
-    @Async
-    public void processPendingLimitOrders() {
-        try {
-            List<Order> pendingLimitOrders = orderService.getPendingOrders();
-            if (pendingLimitOrders.isEmpty()) {
-                return;
-            }
-            for (Order order : pendingLimitOrders) {
-                if (order.getPriceType() != PriceType.LIMIT) {
-                    continue;
-                }
-                try {
-                    // Fetch current real-time price
-                    StockPrice currentPrice = realTimeStockDataService.getCurrentStockPrice(order.getStockSymbol());
-                    BigDecimal marketPrice = currentPrice.getPrice();
-                    boolean shouldExecute = false;
-                    if (order.getOrderType() == OrderType.BUY) {
-                        // For limit buy: execute if market price <= limit price
-                        if (marketPrice.compareTo(order.getLimitPrice()) <= 0) {
-                            shouldExecute = true;
-                        }
-                    } else if (order.getOrderType() == OrderType.SELL) {
-                        // For limit sell: execute if market price >= limit price
-                        if (marketPrice.compareTo(order.getLimitPrice()) >= 0) {
-                            shouldExecute = true;
-                        }
-                    }
-                    if (shouldExecute) {
-                        OrderExecutionService.OrderExecutionResult result = orderExecutionService.executeOrder(order.getId());
-                        if (result.isSuccess()) {
-                            // Optionally log success
-                            System.out.println("Executed limit order ID " + order.getId() + " at price " + marketPrice);
-                        } else {
-                            // Optionally log failure reason
-                            System.err.println("Failed to execute limit order ID " + order.getId() + ": " + result.getMessage());
-                        }
-                    }
-                } catch (Exception e) {
-                    System.err.println("Error processing limit order ID " + order.getId() + ": " + e.getMessage());
-                }
-            }
-        } catch (Exception e) {
-            // Log the error but don't let it crash the scheduled task
-            System.err.println("Error in processPendingLimitOrders: " + e.getMessage());
-        }
-    }
-
     // Result DTOs
     public static class TradingResult {
         private final boolean success;
