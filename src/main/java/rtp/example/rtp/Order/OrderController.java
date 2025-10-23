@@ -2,7 +2,6 @@ package rtp.example.rtp.Order;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import rtp.example.rtp.PortfolioCalculationService;
 import rtp.example.rtp.OrderExecutionService;
 
 import java.util.List;
@@ -13,14 +12,11 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderExecutionService orderExecutionService;
-    private final PortfolioCalculationService portfolioCalculationService;
 
     public OrderController(OrderService orderService,
-                           OrderExecutionService orderExecutionService,
-                           PortfolioCalculationService portfolioCalculationService) {
+                           OrderExecutionService orderExecutionService) {
         this.orderService = orderService;
         this.orderExecutionService = orderExecutionService;
-        this.portfolioCalculationService = portfolioCalculationService;
     }
 
     @GetMapping
@@ -43,37 +39,31 @@ public class OrderController {
         return orderService.getPendingOrders();
     }
 
-    // refactor for global exception
     @PostMapping
     public ResponseEntity<OrderCreationResponse> createOrder(@RequestBody OrderCreationRequest request) {
-        try {
-            // Validate order creation request
-            ValidationResult validation = validateOrderCreation(request);
-            if (!validation.isValid()) {
-                return ResponseEntity.badRequest()
-                        .body(new OrderCreationResponse(false, validation.getMessage(), null));
-            }
-
-            Order order = new Order(
-                    request.getPortfolioId(),
-                    request.getStockSymbol(),
-                    request.getOrderType(),
-                    request.getPriceType(),
-                    request.getQuantity(),
-                    request.getLimitPrice()
-            );
-
-            Order createdOrder = orderService.createOrder(order);
-
-            return ResponseEntity.ok(new OrderCreationResponse(
-                    true,
-                    "Order created successfully",
-                    createdOrder
-            ));
-        } catch (Exception e) {
+        // Validate order creation request
+        ValidationResult validation = validateOrderCreation(request);
+        if (!validation.isValid()) {
             return ResponseEntity.badRequest()
-                    .body(new OrderCreationResponse(false, "Error creating order: " + e.getMessage(), null));
+                    .body(new OrderCreationResponse(false, validation.getMessage(), null));
         }
+
+        Order order = new Order(
+                request.getPortfolioId(),
+                request.getStockSymbol(),
+                request.getOrderType(),
+                request.getPriceType(),
+                request.getQuantity(),
+                request.getLimitPrice()
+        );
+
+        Order createdOrder = orderService.createOrder(order);
+
+        return ResponseEntity.ok(new OrderCreationResponse(
+                true,
+                "Order created successfully",
+                createdOrder
+        ));
     }
 
     @PostMapping("/{id}/execute")
@@ -100,14 +90,16 @@ public class OrderController {
                 successful++;
             } else {
                 failed++;
-                messages.append("Order ").append(order.getId()).append(": ").append(result.getMessage()).append("; ");
+                messages.append("Order ").append(order.getId())
+                        .append(": ").append(result.getMessage()).append("; ");
             }
         }
 
         return ResponseEntity.ok(new BatchExecutionResult(
                 successful,
                 failed,
-                successful + " orders executed successfully" + (failed > 0 ? ", " + failed + " failed: " + messages : "")
+                successful + " orders executed successfully" +
+                        (failed > 0 ? ", " + failed + " failed: " + messages : "")
         ));
     }
 
@@ -118,18 +110,14 @@ public class OrderController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<String> deleteOrder(@PathVariable Long id) {
-        try {
-            Order order = orderService.getOrder(id);
-            if (order.getStatus() == OrderStatus.FILLED) {
-                return ResponseEntity.badRequest().body("Cannot delete filled orders");
-            }
-            orderService.deleteOrder(id);
-            return ResponseEntity.ok("Order deleted successfully");
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body("Error deleting order: " + e.getMessage());
+        Order order = orderService.getOrder(id);
+        if (order.getStatus() == OrderStatus.FILLED) {
+            return ResponseEntity.badRequest().body("Cannot delete filled orders");
         }
+        orderService.deleteOrder(id);
+        return ResponseEntity.ok("Order deleted successfully");
     }
-// refactor for global exception
+
     private ValidationResult validateOrderCreation(OrderCreationRequest request) {
         if (request.getQuantity() == null || request.getQuantity() <= 0) {
             return new ValidationResult(false, "Quantity must be positive");
@@ -139,7 +127,8 @@ public class OrderController {
             return new ValidationResult(false, "Limit price is required for limit orders");
         }
 
-        if (request.getPriceType() == PriceType.LIMIT && request.getLimitPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+        if (request.getPriceType() == PriceType.LIMIT &&
+                request.getLimitPrice().compareTo(java.math.BigDecimal.ZERO) <= 0) {
             return new ValidationResult(false, "Limit price must be positive");
         }
 
