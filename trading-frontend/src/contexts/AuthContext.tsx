@@ -1,11 +1,12 @@
 // src/contexts/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { authService } from '../services/authService';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types';
+import { LoginRequest, RegisterRequest } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 interface AuthContextType {
   isAuthenticated: boolean;
-  user: { userId: number; username: string } | null;
+  user: { username: string } | null;
   login: (credentials: LoginRequest) => Promise<void>;
   register: (userData: RegisterRequest) => Promise<void>;
   logout: () => void;
@@ -16,13 +17,13 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{ userId: number; username: string } | null>(null);
+  const [user, setUser] = useState<{ username: string } | null>(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const token = authService.getToken();
     const currentUser = authService.getCurrentUser();
-    
     if (token && currentUser) {
       setIsAuthenticated(true);
       setUser(currentUser);
@@ -31,15 +32,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const login = async (credentials: LoginRequest) => {
-    const response: AuthResponse = await authService.login(credentials);
+    const response = await authService.login(credentials);
     setIsAuthenticated(true);
-    setUser({ userId: response.userId, username: response.username });
+    setUser({ username: response.username });
+    navigate('/dashboard');
   };
 
   const register = async (userData: RegisterRequest) => {
-    const response: AuthResponse = await authService.register(userData);
-    setIsAuthenticated(true);
-    setUser({ userId: response.userId, username: response.username });
+    await authService.register(userData);
+    navigate('/login'); // go to login after registration
   };
 
   const logout = () => {
