@@ -1,45 +1,34 @@
 // src/services/authService.ts
 import apiClient from '../api/client';
-import { LoginRequest, RegisterRequest, AuthResponse } from '../types';
+import { LoginRequest, RegisterRequest } from '../types';
 
 export const authService = {
-  async login(credentials: LoginRequest): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/login', credentials);
-    const { token, userId, username } = response.data;
+  async login(credentials: LoginRequest) {
+    const response = await apiClient.post('/auth/login', credentials);
+    const { accessToken } = response.data;
 
-    // Store in localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify({ userId, username }));
+    localStorage.setItem('token', accessToken);
+    localStorage.setItem('user', JSON.stringify({ username: credentials.username }));
 
-    return response.data;
+    return { token: accessToken, username: credentials.username };
   },
 
-  async register(userData: RegisterRequest): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/auth/register', userData);
-    const { token, userId, username } = response.data;
-
-    // Store in localStorage
-    localStorage.setItem('token', token);
-    localStorage.setItem('user', JSON.stringify({ userId, username }));
-
-    return response.data;
+  async register(userData: RegisterRequest) {
+    const response = await apiClient.post('/auth/register', userData);
+    return response.data; // { accessToken: ... }
   },
 
-  logout(): void {
+  logout() {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     window.location.href = '/login';
   },
 
-  isAuthenticated(): boolean {
-    return !!localStorage.getItem('token');
-  },
-
-  getToken(): string | null {
+  getToken() {
     return localStorage.getItem('token');
   },
 
-  getCurrentUser(): { userId: number; username: string } | null {
+  getCurrentUser() {
     const userStr = localStorage.getItem('user');
     return userStr ? JSON.parse(userStr) : null;
   },
