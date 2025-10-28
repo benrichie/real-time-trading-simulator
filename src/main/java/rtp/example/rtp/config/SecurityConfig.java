@@ -37,6 +37,12 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> {})
+                .headers(headers ->
+                        headers.contentSecurityPolicy(csp ->
+                                csp.policyDirectives("script-src 'self' 'unsafe-eval'; object-src 'none';")
+                        )
+                )
                 .authorizeHttpRequests(req ->
                         req.requestMatchers("/api/v1/auth/**")
                         .permitAll()
