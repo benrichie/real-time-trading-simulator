@@ -18,34 +18,33 @@
         loadDashboardData();
       }, []);
 
-      const loadDashboardData = async () => {
-        try {
-          setLoading(true);
-          setError('');
+    const loadDashboardData = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-          const portfolios = await portfolioService.getPortfolios();
-
-          if (portfolios.length === 0) {
-            setError('No portfolio found. Please contact support.');
-            return;
-          }
-
-          const portfolio = portfolios[0];
-          setPortfolioId(portfolio.id);
-
-          const summaryData = await portfolioService.getPortfolioSummary(portfolio.id);
-          setSummary(summaryData);
-
-          // const positionsData = await positionService.getPositionSummaries(portfolio.id);
-          // setPositions(positionsData);
-
-        } catch (err: any) {
-          console.error('Failed to load dashboard', err);
-          setError('Failed to load dashboard data. Please try again.');
-        } finally {
-          setLoading(false);
+        const portfolio = await portfolioService.getMyPortfolio(); // single portfolio, not array
+        if (!portfolio) {
+          setError('No portfolio found. Please contact support.');
+          return;
         }
-      };
+
+        setPortfolioId(portfolio.id);
+
+        const summaryData = await portfolioService.getPortfolioSummary(portfolio.id);
+        setSummary(summaryData);
+
+        // Uncomment when you have positions
+        // const positionsData = await positionService.getPositionSummaries(portfolio.id);
+        // setPositions(positionsData);
+
+      } catch (err: any) {
+        console.error('Failed to load dashboard', err);
+        setError('Failed to load dashboard data. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
       if (loading) {
         return (
