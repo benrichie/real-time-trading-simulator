@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { TradingPage } from './pages/TradingPage';
 import { Navbar } from './components/layout/Navbar';
 import './App.css';
 import './pages/Dashboard.css';
@@ -65,8 +66,19 @@ function AppRoutes() {
           </PrivateRoute>
         }
       />
+      <Route
+        path="/trade"
+        element={
+          <PrivateRoute>
+            <>
+              <Navbar />
+              <TradingPage />
+            </>
+          </PrivateRoute>
+        }
+      />
 
-      {/* Default Route */}
+      {/* Default & Fallback Routes */}
       <Route path="/" element={<Navigate to="/dashboard" />} />
       <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
