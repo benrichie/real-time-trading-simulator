@@ -1,8 +1,11 @@
 package rtp.example.rtp.portfolio;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.context.event.EventListener;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import rtp.example.rtp.auth.UserRegisteredEvent;
 import rtp.example.rtp.user.User;
 import rtp.example.rtp.user.UserRepository;
 
@@ -18,6 +21,20 @@ public class PortfolioService {
     public PortfolioService(PortfolioRepository portfolioRepository, UserRepository userRepository) {
         this.portfolioRepository = portfolioRepository;
         this.userRepository = userRepository;
+    }
+
+    @EventListener
+    @Transactional
+    public void handleUserRegistered(UserRegisteredEvent event) {
+        Long userId = event.getUserId();
+
+        if (portfolioRepository.findByUserId(userId).isEmpty()) {
+            User user = userRepository.findById(userId)
+                    .orElseThrow(() -> new EntityNotFoundException("User not found with ID: " + userId));
+
+            Portfolio portfolio = new Portfolio(userId, user.getInitialBalance());
+            portfolioRepository.save(portfolio);
+        }
     }
 
     private Long getCurrentUserId() {
