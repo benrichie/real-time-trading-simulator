@@ -1,5 +1,6 @@
 package rtp.example.rtp.auth;
 
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -8,6 +9,7 @@ import rtp.example.rtp.auth.jwt.JwtService;
 import rtp.example.rtp.user.User;
 import rtp.example.rtp.user.UserRepository;
 
+
 @Service
 public class AuthenticationService {
 
@@ -15,13 +17,17 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final ApplicationEventPublisher eventPublisher;
 
-
-    public AuthenticationService(UserRepository userRepository, PasswordEncoder passwordEncoder, JwtService jwtService, AuthenticationManager authenticationManager) {
+    public AuthenticationService(UserRepository userRepository,
+                                 PasswordEncoder passwordEncoder,
+                                 JwtService jwtService,
+                                 AuthenticationManager authenticationManager, ApplicationEventPublisher eventPublisher) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
         this.authenticationManager = authenticationManager;
+        this.eventPublisher = eventPublisher;
     }
 
     public AuthenticationResponse register(RegisterRequest request){
@@ -44,12 +50,14 @@ public class AuthenticationService {
         }
 
         userRepository.save(user);
+
+        eventPublisher.publishEvent(new UserRegisteredEvent(this, user.getId()));
+
         var jwtToken = jwtService.generateToken(user);
 
         return AuthenticationResponse.builder()
                 .accessToken(jwtToken)
                 .build();
-
     }
 
     public AuthenticationResponse authenticate(AuthenticationRequest request){
