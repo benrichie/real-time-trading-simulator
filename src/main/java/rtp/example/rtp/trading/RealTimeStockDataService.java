@@ -103,7 +103,7 @@ public class RealTimeStockDataService {
         public String getTicker() { return ticker; }
     }
 
-    // Fetch company name from Finnhub (with caching to avoid excessive API calls)
+    // Fetch company name from Finnhub (with caching to avoid excessive API calls.)
     public String getCompanyName(String symbol) {
         try {
             String url = String.format("%s/stock/profile2?symbol=%s&token=%s",
