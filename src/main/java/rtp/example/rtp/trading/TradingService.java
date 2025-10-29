@@ -1,5 +1,7 @@
 package rtp.example.rtp.trading;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import rtp.example.rtp.stock.StockRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
@@ -26,6 +28,8 @@ public class TradingService {
     private final PositionService positionService;
     private final StockService stockService;
     private final RealTimeStockDataService realTimeStockDataService;
+    private final StockRepository stockRepository;
+
 
     public TradingService(OrderService orderService,
                           OrderExecutionService orderExecutionService,
@@ -33,7 +37,7 @@ public class TradingService {
                           PortfolioCalculationService portfolioCalculationService,
                           PositionService positionService,
                           StockService stockService,
-                          RealTimeStockDataService realTimeStockDataService) {
+                          RealTimeStockDataService realTimeStockDataService, StockRepository stockRepository) {
         this.orderService = orderService;
         this.orderExecutionService = orderExecutionService;
         this.portfolioService = portfolioService;
@@ -41,6 +45,7 @@ public class TradingService {
         this.positionService = positionService;
         this.stockService = stockService;
         this.realTimeStockDataService = realTimeStockDataService;
+        this.stockRepository = stockRepository;
     }
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
@@ -108,7 +113,19 @@ public class TradingService {
             throw new IllegalArgumentException("Order type cannot be null");
         }
 
-        Stock stock = stockService.getStock(stockSymbol);
+        Stock stock = stockRepository.findBySymbol(stockSymbol.toUpperCase())
+                .orElseGet(() -> {
+                    StockPrice stockData = realTimeStockDataService.getCurrentStockPrice(stockSymbol);
+                    String companyName = realTimeStockDataService.getCompanyName(stockSymbol);
+
+                    Stock newStock = new Stock();
+                    newStock.setSymbol(stockSymbol.toUpperCase());
+                    newStock.setCompanyName(companyName);
+                    newStock.setCurrentPrice(stockData.getPrice());
+                    newStock.setLastUpdated(stockData.getTimestamp());
+                    return stockRepository.save(newStock);
+                });
+
         BigDecimal currentPrice = realTimeStockDataService.getCurrentStockPrice(stockSymbol).getPrice();
         BigDecimal totalValue = currentPrice.multiply(new BigDecimal(quantity));
 
