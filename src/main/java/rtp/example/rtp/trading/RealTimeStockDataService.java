@@ -91,6 +91,39 @@ public class RealTimeStockDataService {
         public LocalDateTime getTimestamp() { return timestamp; }
     }
 
+    // API response DTO for company profile
+    private static class CompanyProfileResponse {
+        @JsonProperty("name")
+        private String name;
+
+        @JsonProperty("ticker")
+        private String ticker;
+
+        public String getName() { return name; }
+        public String getTicker() { return ticker; }
+    }
+
+    // Fetch company name from Finnhub (with caching to avoid excessive API calls)
+    public String getCompanyName(String symbol) {
+        try {
+            String url = String.format("%s/stock/profile2?symbol=%s&token=%s",
+                    apiUrl, symbol.toUpperCase(), apiKey);
+
+            CompanyProfileResponse response = restTemplate.getForObject(url, CompanyProfileResponse.class);
+
+            if (response != null && response.getName() != null && !response.getName().isEmpty()) {
+                logger.debug("Fetched company name for {}: {}", symbol, response.getName());
+                return response.getName();
+            } else {
+                logger.warn("No company name found for symbol {}, using symbol as fallback", symbol);
+                return symbol.toUpperCase();
+            }
+        } catch (Exception e) {
+            logger.warn("Failed to fetch company name for symbol {}, using symbol as fallback", symbol, e);
+            return symbol.toUpperCase();
+        }
+    }
+
     // Constructor (step 1)
     @Autowired
     public RealTimeStockDataService(StockService stockService,
