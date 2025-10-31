@@ -187,3 +187,18 @@
     flex-direction: column;
   }
 }
+
+.trade-page {
+  padding: 20px;
+}
+
+.chart-section {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.symbol-selector {
+  margin-top: 10px;
+}
