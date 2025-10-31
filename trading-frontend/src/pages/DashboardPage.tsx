@@ -5,6 +5,7 @@ import { portfolioService } from '../services/portfolioService';
 import { positionService } from '../services/positionService';
 import { PortfolioSummary, PositionSummary } from '../types';
 import './Dashboard.css';
+import { usePriceUpdates } from '../hooks/usePriceUpdates';
 
 export const DashboardPage: React.FC = () => {
   const [summary, setSummary] = useState<PortfolioSummary | null>(null);
@@ -17,6 +18,42 @@ export const DashboardPage: React.FC = () => {
   useEffect(() => {
     loadDashboardData();
   }, []);
+
+  usePriceUpdates((updatedPrice) => {
+    // Update positions live when a price broadcast comes in
+    setPositions((prevPositions) =>
+      prevPositions.map((pos) =>
+        pos.stockSymbol === updatedPrice.symbol
+          ? {
+              ...pos,
+              currentPrice: updatedPrice.price,
+              currentMarketValue: pos.quantity * updatedPrice.price,
+              unrealizedPnL:
+                pos.quantity * (updatedPrice.price - pos.averagePrice),
+              percentageReturn:
+                ((updatedPrice.price - pos.averagePrice) / pos.averagePrice) *
+                100,
+            }
+          : pos
+      )
+    );
+
+    // Optionally update portfolio summary live too
+    setSummary((prev) =>
+      prev
+        ? {
+            ...prev,
+            totalPortfolioValue:
+              prev.cashBalance +
+              prev.totalPositionsValue +
+              positions.reduce(
+                (sum, p) => sum + p.quantity * updatedPrice.price,
+                0
+              ),
+          }
+        : prev
+    );
+  });
 
   const loadDashboardData = async () => {
     try {
