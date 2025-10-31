@@ -50,47 +50,50 @@ public class TradingService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TradingResult buyStock(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
-        // Validate inputs - throw exceptions that GlobalExceptionHandler will catch
         validateBuyOrder(portfolioId, stockSymbol, quantity, priceType, limitPrice);
 
-        // Create buy order
         Order order = new Order(portfolioId, stockSymbol, OrderType.BUY, priceType, quantity, limitPrice);
         Order createdOrder = orderService.createOrder(order);
 
-        // Execute order immediately (for market orders) or leave pending (for limit orders)
         if (priceType == PriceType.MARKET) {
             OrderExecutionService.OrderExecutionResult executionResult = orderExecutionService.executeOrder(createdOrder.getId());
             if (executionResult.isSuccess()) {
+                // Track symbol after successful execution
+                realTimeStockDataService.trackSymbol(stockSymbol);
                 return new TradingResult(true, "Buy order executed successfully", createdOrder);
             } else {
                 throw new RuntimeException("Failed to execute buy order: " + executionResult.getMessage());
             }
         } else {
+            // Track limit orders too, so they get updated and may trigger later fills
+            realTimeStockDataService.trackSymbol(stockSymbol);
             return new TradingResult(true, "Limit buy order created and pending", createdOrder);
         }
     }
 
+
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public TradingResult sellStock(Long portfolioId, String stockSymbol, Integer quantity, PriceType priceType, BigDecimal limitPrice) {
-        // Validate inputs - throw exceptions that GlobalExceptionHandler will catch
         validateSellOrder(portfolioId, stockSymbol, quantity, priceType, limitPrice);
 
-        // Create sell order
         Order order = new Order(portfolioId, stockSymbol, OrderType.SELL, priceType, quantity, limitPrice);
         Order createdOrder = orderService.createOrder(order);
 
-        // Execute order immediately (for market orders) or leave pending (for limit orders)
         if (priceType == PriceType.MARKET) {
             OrderExecutionService.OrderExecutionResult executionResult = orderExecutionService.executeOrder(createdOrder.getId());
             if (executionResult.isSuccess()) {
+                // Track symbol to keep updating after selling
+                realTimeStockDataService.trackSymbol(stockSymbol);
                 return new TradingResult(true, "Sell order executed successfully", createdOrder);
             } else {
                 throw new RuntimeException("Failed to execute sell order: " + executionResult.getMessage());
             }
         } else {
+            realTimeStockDataService.trackSymbol(stockSymbol);
             return new TradingResult(true, "Limit sell order created and pending", createdOrder);
         }
     }
+
 
     @Transactional
     public TradingResult sellAllShares(Long portfolioId, String stockSymbol, PriceType priceType, BigDecimal limitPrice) {
