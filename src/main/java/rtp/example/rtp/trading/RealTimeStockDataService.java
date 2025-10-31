@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-//implement global exception handler
+
 @Service
 public class RealTimeStockDataService {
 
@@ -153,7 +153,8 @@ public class RealTimeStockDataService {
         }
     }
 
-
+    @Autowired
+    private PriceBroadcastService priceBroadcastService;
     // Fetch from external API, persist, update Stock entity (steps 3-4)
     private StockPrice fetchAndUpdateStockPrice(String symbol) {
         try {
@@ -230,6 +231,7 @@ public class RealTimeStockDataService {
     @Scheduled(fixedRate = 30000)
     @Async
     public void updateActiveStockPrices() {
+        logger.info("Running scheduled price update task... Active symbols: {}", activeSymbols.size());
         if (activeSymbols.isEmpty()) {
             return;
         }
@@ -238,12 +240,30 @@ public class RealTimeStockDataService {
 
         activeSymbols.parallelStream().forEach(symbol -> {
             try {
-                fetchAndUpdateStockPrice(symbol);
+                StockPrice updatedPrice = fetchAndUpdateStockPrice(symbol);
+
+                // Build the message to broadcast
+                PriceUpdateMessage message = new PriceUpdateMessage(
+                        updatedPrice.getSymbol(),
+                        updatedPrice.getPrice(),
+                        updatedPrice.getChangeAmount(),
+                        updatedPrice.getChangePercent(),
+                        updatedPrice.getTimestamp()
+                );
+
+                // Log before broadcasting
+                logger.info("Broadcasting live update: {} -> {}",
+                        message.getSymbol(), message.getPrice());
+
+                // Send to WebSocket clients
+                priceBroadcastService.broadcastPriceUpdate(message);
+
             } catch (Exception e) {
                 logger.warn("Failed to update price for symbol: {}", symbol, e);
             }
         });
     }
+
 
     // Update multiple stocks and start tracking them
     public void updateMultipleStockPrices(Set<String> symbols) {
