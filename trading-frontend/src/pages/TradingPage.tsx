@@ -5,41 +5,41 @@ import { portfolioService } from '../services/portfolioService';
 import { tradingService } from '../services/TradingService';
 import { Quote } from '../types';
 import './Trading.css';
+import { TradingViewChart } from '../components/TradingViewChart';
 
 export const TradingPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
   const [portfolioId, setPortfolioId] = useState<number | null>(null);
-  const [symbol, setSymbol] = useState(searchParams.get('symbol') || '');
+  const [symbol, setSymbol] = useState(searchParams.get('symbol') || 'AAPL');
   const [quantity, setQuantity] = useState('1');
   const [orderType, setOrderType] = useState<'BUY' | 'SELL'>(
     (searchParams.get('action')?.toUpperCase() as 'BUY' | 'SELL') || 'BUY'
   );
   const [priceType, setPriceType] = useState<'MARKET' | 'LIMIT'>('MARKET');
   const [limitPrice, setLimitPrice] = useState('');
-
   const [quote, setQuote] = useState<Quote | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-useEffect(() => {
-  const loadPortfolio = async () => {
-    try {
-      const portfolio = await portfolioService.getMyPortfolio();
-      if (portfolio) {
-        setPortfolioId(portfolio.id);
-      } else {
-        setError('No portfolio found. Please create one first.');
+  useEffect(() => {
+    const loadPortfolio = async () => {
+      try {
+        const portfolio = await portfolioService.getMyPortfolio();
+        if (portfolio) {
+          setPortfolioId(portfolio.id);
+        } else {
+          setError('No portfolio found. Please create one first.');
+        }
+      } catch (err) {
+        console.error('Failed to load portfolio', err);
+        setError('Failed to load portfolio.');
       }
-    } catch (err) {
-      console.error('Failed to load portfolio', err);
-      setError('Failed to load portfolio.');
-    }
-  };
-  loadPortfolio();
-}, []);
+    };
+    loadPortfolio();
+  }, []);
 
   const handleGetQuote = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,6 +56,8 @@ useEffect(() => {
         orderType
       );
       setQuote(quoteData);
+      // automatically update chart when symbol changes
+      setSymbol(quoteData.stockSymbol.toUpperCase());
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to get quote');
     } finally {
@@ -82,20 +84,16 @@ useEffect(() => {
         limitPrice: priceType === 'LIMIT' ? parseFloat(limitPrice) : undefined,
       };
 
-      const response = orderType === 'BUY'
-        ? await tradingService.buyStock(request)
-        : await tradingService.sellStock(request);
+      const response =
+        orderType === 'BUY'
+          ? await tradingService.buyStock(request)
+          : await tradingService.sellStock(request);
 
       setSuccess(response.message);
       setQuote(null);
-      setSymbol('');
       setQuantity('1');
 
-      // Redirect to dashboard after 2 seconds
-      setTimeout(() => {
-        navigate('/dashboard');
-      }, 2000);
-
+      setTimeout(() => navigate('/dashboard'), 2000);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Trade failed');
     } finally {
@@ -103,12 +101,11 @@ useEffect(() => {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
     }).format(value);
-  };
 
   return (
     <div className="trading-page">
@@ -128,7 +125,6 @@ useEffect(() => {
           <h2>Place Order</h2>
 
           <form onSubmit={handleGetQuote}>
-            {/* Order Type Toggle */}
             <div className="order-type-toggle">
               <button
                 type="button"
@@ -146,7 +142,6 @@ useEffect(() => {
               </button>
             </div>
 
-            {/* Stock Symbol */}
             <div className="form-group">
               <label htmlFor="symbol">Stock Symbol</label>
               <input
@@ -160,7 +155,6 @@ useEffect(() => {
               />
             </div>
 
-            {/* Quantity */}
             <div className="form-group">
               <label htmlFor="quantity">Quantity</label>
               <input
@@ -174,7 +168,6 @@ useEffect(() => {
               />
             </div>
 
-            {/* Price Type */}
             <div className="form-group">
               <label htmlFor="priceType">Order Type</label>
               <select
@@ -188,7 +181,6 @@ useEffect(() => {
               </select>
             </div>
 
-            {/* Limit Price */}
             {priceType === 'LIMIT' && (
               <div className="form-group">
                 <label htmlFor="limitPrice">Limit Price ($)</label>
@@ -212,6 +204,11 @@ useEffect(() => {
           </form>
         </div>
 
+        {/* Chart Section */}
+        <div className="chart-section">
+          <TradingViewChart symbol={symbol} height={500} />
+        </div>
+
         {/* Quote Display */}
         {quote && (
           <div className="quote-card">
@@ -229,14 +226,6 @@ useEffect(() => {
               <div className="quote-row">
                 <span className="quote-label">Current Price:</span>
                 <span className="quote-value">{formatCurrency(quote.currentPrice)}</span>
-              </div>
-              <div className="quote-row">
-                <span className="quote-label">Quantity:</span>
-                <span className="quote-value">{quote.quantity}</span>
-              </div>
-              <div className="quote-row">
-                <span className="quote-label">Order Type:</span>
-                <span className="quote-value">{quote.orderType}</span>
               </div>
               <div className="quote-row total">
                 <span className="quote-label">Total Value:</span>
