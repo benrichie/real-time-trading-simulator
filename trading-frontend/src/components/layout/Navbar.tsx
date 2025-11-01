@@ -1,49 +1,41 @@
 // src/components/layout/Navbar.tsx
 import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import './Navbar.css';
 
 export const Navbar: React.FC = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const handleLogout = () => {
     logout();
     navigate('/login');
   };
 
-  const isActive = (path: string) => location.pathname === path;
-
   return (
     <nav className="navbar">
-      <div className="navbar-container">
-        <div className="navbar-brand" onClick={() => navigate('/dashboard')}>
-          Trading Platform
-        </div>
+       <div className="navbar-left">
+         <a
+           href="https://github.com/benrichie"
+           target="_blank"
+           rel="noopener noreferrer"
+           className="navbar-github"
+         >
+           <img src="/githubimage.png" alt="GitHub" className="github-logo" />
+         </a>
+       </div>
 
-        <div className="navbar-links">
-          <button
-            className={`nav-link ${isActive('/dashboard') ? 'active' : ''}`}
-            onClick={() => navigate('/dashboard')}
-          >
-            Dashboard
-          </button>
-          <button
-            className={`nav-link ${isActive('/trade') ? 'active' : ''}`}
-            onClick={() => navigate('/trade')}
-          >
-            Trade
-          </button>
-        </div>
 
-        <div className="navbar-user">
-          <span className="user-name"> {user?.username}</span>
-          <button className="btn-logout" onClick={handleLogout}>
-            Logout
-          </button>
-        </div>
+      <div className="navbar-center">
+        <h1 className="navbar-title">live trading simulator</h1>
+      </div>
+
+      <div className="navbar-right">
+        <span className="navbar-username">{user?.username}</span>
+        <button className="btn-logout" onClick={handleLogout}>
+          logout
+        </button>
       </div>
     </nav>
   );
