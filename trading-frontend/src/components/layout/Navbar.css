@@ -1,81 +1,84 @@
-/* src/components/layout/Navbar.css */
-
-.navbar {
-  background-color: #0d1117;
-  color: #ffffff;
-  padding: 12px 24px;
-  display: flex;
-  justify-content: center;
-  border-bottom: 1px solid #30363d;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
+@font-face {
+  font-family: 'CloisterBlack';
+  src: url('../../assets/fonts/CloisterBlack.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
 }
 
-.navbar-container {
-  width: 100%;
-  max-width: 1200px;
+/* Navbar base */
+.navbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-}
-
-.navbar-brand {
-  font-size: 1.3rem;
-  font-weight: 600;
-  cursor: pointer;
-  color: #58a6ff;
-  transition: color 0.2s ease;
-}
-
-.navbar-brand:hover {
-  color: #79c0ff;
-}
-
-.navbar-links {
-  display: flex;
-  gap: 20px;
-}
-
-.nav-link {
-  background: none;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  padding: 6px 24px;
+  height: 48px;
   border: none;
-  color: #c9d1d9;
-  font-size: 1rem;
-  cursor: pointer;
-  transition: color 0.2s ease;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  /* no stickiness */
+  position: relative;
+  z-index: 10;
 }
 
-.nav-link:hover {
-  color: #58a6ff;
+/* Left - GitHub logo */
+.github-logo {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  display: block;
+  transition: opacity 0.2s ease;
+  transform: translateY(4px);
 }
 
-.nav-link.active {
-  color: #58a6ff;
-  border-bottom: 2px solid #58a6ff;
+.github-logo:hover {
+  opacity: 0.7;
 }
 
-.navbar-user {
+
+/* Center - Title */
+.navbar-center {
+  flex: 1;
+  text-align: center;
+  line-height: 0; /* prevents extra vertical height */
+}
+
+.navbar-title {
+  font-family: 'CloisterBlack', 'UnifrakturCook', serif;
+  text-transform: lowercase;
+  font-size: 40px;
+  font-weight: bold;
+  color: var(--text-primary);
+  letter-spacing: 0.3px;
+  margin: 0;
+  transform: translateY(2px); /* optically centered */
+}
+
+/* Right - Username and Logout */
+.navbar-right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.user-name {
+.navbar-username {
   font-weight: 500;
-  color: #c9d1d9;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .btn-logout {
-  background-color: #f85149;
-  border: none;
-  color: #ffffff;
-  padding: 6px 12px;
-  border-radius: 6px;
+  background: none;
+  border: 1px solid var(--border-color);
+  color: var(--text-primary);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: background 0.2s ease, opacity 0.2s ease;
 }
 
 .btn-logout:hover {
-  background-color: #da3633;
+  background: #f2f2f2;
 }
