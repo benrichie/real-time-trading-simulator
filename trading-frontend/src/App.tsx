@@ -1,15 +1,11 @@
-// src/App.tsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
-import { TradingPage } from './pages/TradingPage';
 import { Navbar } from './components/layout/Navbar';
 import './App.css';
-import './pages/Dashboard.css';
-import './components/layout/Navbar.css';
 
 // Protected Route Component
 const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
@@ -22,7 +18,7 @@ const PrivateRoute: React.FC<{ children: React.ReactElement }> = ({ children }) 
   return isAuthenticated ? children : <Navigate to="/login" />;
 };
 
-// Public Route Component (redirect to dashboard if already logged in)
+// Public Route Component
 const PublicRoute: React.FC<{ children: React.ReactElement }> = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
 
@@ -62,17 +58,6 @@ function AppRoutes() {
             <>
               <Navbar />
               <DashboardPage />
-            </>
-          </PrivateRoute>
-        }
-      />
-      <Route
-        path="/trade"
-        element={
-          <PrivateRoute>
-            <>
-              <Navbar />
-              <TradingPage />
             </>
           </PrivateRoute>
         }
