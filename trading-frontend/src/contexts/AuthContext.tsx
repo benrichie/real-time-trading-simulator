@@ -40,7 +40,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const register = async (userData: RegisterRequest) => {
     await authService.register(userData);
-    navigate('/login'); // go to login after registration
+
   };
 
   const logout = () => {
