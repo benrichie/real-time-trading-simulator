@@ -1,0 +1,38 @@
+Prerequisites:
+- Java 21 (Temurin / Eclipse Adoptium)
+- Gradle (wrapper included)
+- Docker
+- Node.js and npm
+
+Backend Setup (Spring Boot + PostgreSQL):
+1. Verify Gradle Wrapper Exists
+   - Ensure 'gradlew' is present in the project root.
+
+2. Build the Project:
+   ./gradlew clean build
+
+3. Run the Backend:
+   ./gradlew bootRun
+
+4. Set Up PostgreSQL Database via Docker:
+   docker compose up -d
+
+5. Verify Container is Running:
+   docker ps
+
+Frontend Setup (React + TypeScript):
+1. Navigate to Frontend Directory:
+   cd trading-frontend
+
+2. Install Dependencies:
+   npm install
+
+3. Run the Frontend Development Server:
+   npm start
+
+Notes:
+- In order for live functionality to work you need to get a free api key from FINNHUB and place it in
+src\main\resources\application.properties stock.api.key=
+- Backend runs on Spring Boot and connects to PostgreSQL at localhost:5433.
+- Frontend runs on localhost:3000 by default.
+- Ensure environment variables and API keys are set as required in application.properties and frontend .env if applicable.
