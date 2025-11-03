@@ -46,7 +46,8 @@ public class Order {
     private LocalDateTime createdAt;
     private LocalDateTime filledAt;
 
-    @PrePersist
+    @PrePersist // @PrePersist annotation is used on a method in the JPA entity class that should be invoked
+    // before the entity is persisted (i.e. before it is saved to the database)
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
     }
