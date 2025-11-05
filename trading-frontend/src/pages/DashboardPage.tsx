@@ -71,7 +71,6 @@ export const DashboardPage: React.FC = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Trading form state
   const [symbol, setSymbol] = useState('AAPL');
   const [quantity, setQuantity] = useState('1');
   const [orderType, setOrderType] = useState<'BUY' | 'SELL'>('BUY');
@@ -209,14 +208,17 @@ export const DashboardPage: React.FC = () => {
       {error && <div className="error-message">{error}</div>}
       {success && <div className="success-message">{success}</div>}
 
-      {/* Top Section - Chart + Trading Form */}
+      {/* Top Section */}
       <div className="top-section">
-        {/* Chart - Left Side */}
+        {/* Chart Section */}
         <div className="chart-container">
-          <TradingViewChart symbol={symbol} height={500} />
+          <TradingViewChart symbol={symbol} />
+          <div className="chart-warning">
+            data disclaimer: chart data may differ slightly from actual execution prices
+          </div>
         </div>
 
-        {/* Trading Form - Right Side */}
+        {/* Trading Form */}
         <div className="trade-form">
           <h2>Place Order</h2>
 
@@ -245,10 +247,15 @@ export const DashboardPage: React.FC = () => {
                 type="text"
                 value={symbol}
                 onChange={(e) => setSymbol(e.target.value.toUpperCase())}
-                placeholder="AAPL"
+                placeholder="AAPL or BINANCE:BTCUSDT"
                 required
                 disabled={tradeLoading}
               />
+              <small className="symbol-hint">
+                examples:<br />
+                <strong>for crypto</strong> – BINANCE:BTCUSDT (Bitcoin), BINANCE:ETHUSDT (Ethereum)<br />
+                <strong>for stocks</strong> – AAPL (Apple), TSLA (Tesla), MSFT (Microsoft)
+              </small>
             </div>
 
             <div className="form-group">
@@ -306,9 +313,8 @@ export const DashboardPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Bottom Section - Positions + Summary */}
+      {/* Bottom Section */}
       <div className="bottom-section">
-        {/* Positions Table */}
         <div className="positions-section">
           <h2>Open Positions</h2>
           {positions.length === 0 ? (
@@ -353,7 +359,6 @@ export const DashboardPage: React.FC = () => {
           )}
         </div>
 
-        {/* Summary Cards */}
         {summary && (
           <div className="summary-cards">
             <div className="card">
@@ -384,7 +389,6 @@ export const DashboardPage: React.FC = () => {
         )}
       </div>
 
-      {/* Quote Modal */}
       <QuoteModal
         isOpen={showQuoteModal}
         onClose={() => setShowQuoteModal(false)}
