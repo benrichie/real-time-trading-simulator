@@ -8,16 +8,11 @@ declare global {
 
 interface TradingViewChartProps {
   symbol: string;
-  width?: string | number;
-  height?: string | number;
 }
 
-export const TradingViewChart: React.FC<TradingViewChartProps> = ({
-  symbol,
-  width = "100%",
-  height = 500,
-}) => {
+export const TradingViewChart: React.FC<TradingViewChartProps> = ({ symbol }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const widgetRef = useRef<any>(null);
 
   useEffect(() => {
     if (!window.TradingView) {
@@ -32,7 +27,10 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
 
     function createWidget() {
       if (containerRef.current && window.TradingView) {
-        new window.TradingView.widget({
+        // Clear any existing widget
+        containerRef.current.innerHTML = '';
+
+        widgetRef.current = new window.TradingView.widget({
           autosize: true,
           symbol: symbol.toUpperCase(),
           interval: '1',
@@ -47,13 +45,22 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({
         });
       }
     }
+
+    return () => {
+      if (widgetRef.current && widgetRef.current.remove) {
+        widgetRef.current.remove();
+      }
+    };
   }, [symbol]);
 
   return (
     <div
       id={`tradingview_${symbol}`}
       ref={containerRef}
-      style={{ width, height }}
+      style={{
+        width: '100%',
+        height: '100%',
+      }}
     />
   );
 };
