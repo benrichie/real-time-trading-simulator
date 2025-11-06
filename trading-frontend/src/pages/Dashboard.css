@@ -1,15 +1,13 @@
-
-
 :root {
   --bg-primary: #f8f9fa;
   --bg-white: #ffffff;
   --text-primary: #111111;
   --text-secondary: #666666;
   --border-color: #e5e7eb;
-  --positive-color: #b3e6b5;
-  --negative-color: #f3c4c6;
-  --accent-buy: #b3e6b5;
-  --accent-sell: #f3c4c6;
+  --positive-color: #10b981;
+  --negative-color: #ef4444;
+  --accent-buy: #10b981;
+  --accent-sell: #ef4444;
 }
 
 .dashboard {
@@ -65,15 +63,28 @@
   flex-direction: column;
   height: 100%;
   overflow: hidden;
-  padding: 0;
+  position: relative;
 }
 
-.chart-container iframe,
-.chart-container div {
+.chart-container > div:first-child {
+  flex: 1;
+  min-height: 0;
+}
+
+.chart-container > div:first-child,
+.chart-container > div:first-child > * {
   height: 100% !important;
-  width: 100% !important;
 }
 
+.chart-warning {
+  padding: 8px 12px;
+  font-size: 10px;
+  color: var(--text-secondary);
+  background: #fafafa;
+  border-top: 1px solid var(--border-color);
+  text-align: center;
+  letter-spacing: 0.3px;
+}
 
 .trade-form {
   background: var(--bg-white);
@@ -125,11 +136,13 @@
 .toggle-btn.active.buy {
   background: var(--accent-buy);
   border-color: var(--accent-buy);
+  color: white;
 }
 
 .toggle-btn.active.sell {
   background: var(--accent-sell);
   border-color: var(--accent-sell);
+  color: white;
 }
 
 /* Form Groups */
@@ -169,6 +182,13 @@
   background: #fafafa;
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+.symbol-hint {
+  font-size: 11px;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  line-height: 1.4;
 }
 
 .btn-primary {
@@ -406,12 +426,12 @@
 
 .btn-confirm.btn-buy {
   background: var(--accent-buy);
-  color: var(--text-primary);
+  color: white;
 }
 
 .btn-confirm.btn-sell {
   background: var(--accent-sell);
-  color: var(--text-primary);
+  color: white;
 }
 
 .btn-confirm:hover:not(:disabled) {
