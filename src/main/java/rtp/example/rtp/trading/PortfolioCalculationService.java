@@ -27,30 +27,19 @@ public class PortfolioCalculationService {
         this.stockService = stockService;
     }
 
-
     public void recalculatePortfolio(Long portfolioId) {
-        // getPortfolio already verifies ownership
         Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
-
-        // getPositionsByPortfolio already verifies ownership through portfolioService
         List<Position> positions = positionService.getPositionsByPortfolio(portfolioId);
 
-        // Calculate total market value of all positions
         BigDecimal totalPositionsValue = calculateTotalPositionsValue(positions);
-
-        // Update portfolio total value (cash + positions)
         BigDecimal totalPortfolioValue = portfolio.getCashBalance().add(totalPositionsValue);
         portfolio.setTotalValue(totalPortfolioValue);
 
-        // updatePortfolio already verifies ownership
         portfolioService.updatePortfolio(portfolio);
-
-        // Update individual position current values
         updatePositionCurrentValues(positions);
     }
 
     public PortfolioSummary getPortfolioSummary(Long portfolioId) {
-        // Ownership verification happens in getPortfolio
         Portfolio portfolio = portfolioService.getPortfolio(portfolioId);
         List<Position> positions = positionService.getPositionsByPortfolio(portfolioId);
 
@@ -59,6 +48,18 @@ public class PortfolioCalculationService {
         BigDecimal unrealizedPnL = totalPositionsValue.subtract(totalCostBasis);
         BigDecimal totalPortfolioValue = portfolio.getCashBalance().add(totalPositionsValue);
 
+        BigDecimal initialCapital = portfolio.getInitialCapital() != null
+                ? portfolio.getInitialCapital()
+                : BigDecimal.ZERO;
+
+        BigDecimal percentageReturn = BigDecimal.ZERO;
+        if (initialCapital.compareTo(BigDecimal.ZERO) > 0) {
+            percentageReturn = totalPortfolioValue
+                    .subtract(initialCapital)
+                    .divide(initialCapital, 4, RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("100"));
+        }
+
         return new PortfolioSummary(
                 portfolioId,
                 portfolio.getCashBalance(),
@@ -66,12 +67,11 @@ public class PortfolioCalculationService {
                 totalPortfolioValue,
                 totalCostBasis,
                 unrealizedPnL,
-                calculatePortfolioPercentageReturn(totalPortfolioValue, getTotalInvestedAmount(portfolio, totalCostBasis))
+                percentageReturn
         );
     }
 
     public PositionSummary getPositionSummary(Long positionId) {
-        // Ownership verification happens in getPosition
         Position position = positionService.getPosition(positionId);
         Stock stock = stockService.getStock(position.getStockSymbol());
 
@@ -95,18 +95,15 @@ public class PortfolioCalculationService {
 
     private BigDecimal calculateTotalPositionsValue(List<Position> positions) {
         BigDecimal total = BigDecimal.ZERO;
-
         for (Position position : positions) {
             try {
                 Stock stock = stockService.getStock(position.getStockSymbol());
                 BigDecimal positionValue = stock.getCurrentPrice().multiply(new BigDecimal(position.getQuantity()));
                 total = total.add(positionValue);
             } catch (Exception e) {
-                // If stock not found, use the stored current value
                 total = total.add(position.getCurrentValue());
             }
         }
-
         return total;
     }
 
@@ -122,10 +119,8 @@ public class PortfolioCalculationService {
                 Stock stock = stockService.getStock(position.getStockSymbol());
                 BigDecimal currentValue = stock.getCurrentPrice().multiply(new BigDecimal(position.getQuantity()));
                 position.setCurrentValue(currentValue);
-                // updatePosition already verifies ownership
                 positionService.updatePosition(position);
             } catch (Exception e) {
-                // If stock price cannot be fetched, keep existing current value
                 System.err.println("Could not update position value for " + position.getStockSymbol());
             }
         }
@@ -135,25 +130,25 @@ public class PortfolioCalculationService {
         if (costBasis.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-
         return currentValue.subtract(costBasis)
                 .divide(costBasis, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100"));
     }
 
+    // This now calculates only relative to initial capital, not double-counted invested amount
     private BigDecimal calculatePortfolioPercentageReturn(BigDecimal currentValue, BigDecimal initialValue) {
         if (initialValue.compareTo(BigDecimal.ZERO) == 0) {
             return BigDecimal.ZERO;
         }
-
         return currentValue.subtract(initialValue)
                 .divide(initialValue, 4, RoundingMode.HALF_UP)
                 .multiply(new BigDecimal("100"));
     }
 
+    // No longer used for return calculation but still valid if needed elsewhere
     private BigDecimal getTotalInvestedAmount(Portfolio portfolio, BigDecimal totalCostBasis) {
         BigDecimal initialCapital = portfolio.getInitialCapital();
-        if(initialCapital == null) {
+        if (initialCapital == null) {
             initialCapital = BigDecimal.ZERO;
         }
         return initialCapital.add(totalCostBasis);
@@ -181,7 +176,6 @@ public class PortfolioCalculationService {
             this.percentageReturn = percentageReturn;
         }
 
-        // Getters
         public Long getPortfolioId() { return portfolioId; }
         public BigDecimal getCashBalance() { return cashBalance; }
         public BigDecimal getTotalPositionsValue() { return totalPositionsValue; }
@@ -216,7 +210,6 @@ public class PortfolioCalculationService {
             this.percentageReturn = percentageReturn;
         }
 
-        // Getters
         public Long getPositionId() { return positionId; }
         public String getStockSymbol() { return stockSymbol; }
         public Integer getQuantity() { return quantity; }
