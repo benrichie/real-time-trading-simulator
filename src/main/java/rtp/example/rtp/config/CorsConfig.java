@@ -6,11 +6,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class CorsConfig implements WebMvcConfigurer {
-
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:3000")
+        registry.addMapping("/**")  // Changed from /api/** to /**
+                .allowedOrigins(
+                        "http://localhost:3000",
+                        "https://*.onrender.com"  // Allow all Render subdomains temporarily
+                )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
                 .exposedHeaders("Authorization")
