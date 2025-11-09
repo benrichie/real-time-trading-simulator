@@ -11,7 +11,7 @@ public class CorsConfig implements WebMvcConfigurer {
         registry.addMapping("/**")  // Changed from /api/** to /**
                 .allowedOrigins(
                         "http://localhost:3000",
-                        "https://*.onrender.com"  // Allow all Render subdomains temporarily
+                        "https://trading-platform-frontend-wg73.onrender.com"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
