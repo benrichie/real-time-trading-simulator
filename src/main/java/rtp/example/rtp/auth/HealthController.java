@@ -11,4 +11,4 @@ public class HealthController {
         return "Backend is running! Database connected successfully.";
     }
 }
-}
+
