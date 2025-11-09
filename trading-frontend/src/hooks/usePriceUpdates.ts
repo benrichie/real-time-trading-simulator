@@ -17,12 +17,8 @@ export function usePriceUpdates(onPriceUpdate: (data: StockPrice) => void) {
     // Use environment variable for API URL
     const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:8080";
 
-    // Convert http/https to ws/wss for WebSocket
-    const wsUrl = apiUrl
-      .replace("https://", "wss://")
-      .replace("http://", "ws://");
-
-    const socketUrl = `${wsUrl}/ws-trading`;
+    // SockJS uses http/https and upgrades to WebSocket automatically
+    const socketUrl = `${apiUrl}/ws-trading`;
 
     console.log("Connecting to WebSocket:", socketUrl);
 
