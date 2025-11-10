@@ -31,8 +31,8 @@ All sensitive configuration, including API keys and JWT secrets, is managed thro
 ### Known Limitations
 
 **Infrastructure Constraints:**
-- Free-tier services sleep after 15 minutes of inactivity, resulting in 30-60 second cold start times
-- Limited CPU and memory allocation may impact performance under concurrent load
+- Free-tier services sleep after 15 minutes of inactivity, resulting in **30-60 second cold start times**
+- **Limited CPU and memory allocation impacts performance**
 - Database storage restrictions on the free tier
 
 **API and Data:**
