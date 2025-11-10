@@ -12,25 +12,18 @@ interface TradingViewChartProps {
 
 export const TradingViewChart: React.FC<TradingViewChartProps> = ({ symbol }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const widgetRef = useRef<any>(null);
+  const scriptRef = useRef<HTMLScriptElement | null>(null);
 
   useEffect(() => {
-    if (!window.TradingView) {
-      const script = document.createElement('script');
-      script.src = 'https://s3.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = () => createWidget();
-      document.body.appendChild(script);
-    } else {
-      createWidget();
-    }
+    let isMounted = true;
 
-    function createWidget() {
-      if (containerRef.current && window.TradingView) {
-        // Clear any existing widget
-        containerRef.current.innerHTML = '';
+    const loadTradingView = () => {
+      if (!isMounted || !containerRef.current) return;
 
-        widgetRef.current = new window.TradingView.widget({
+      containerRef.current.innerHTML = '';
+
+      if (window.TradingView) {
+        new window.TradingView.widget({
           autosize: true,
           symbol: symbol.toUpperCase(),
           interval: '1',
@@ -44,11 +37,24 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ symbol }) =>
           container_id: containerRef.current.id,
         });
       }
+    };
+
+    if (!window.TradingView) {
+      const script = document.createElement('script');
+      script.src = 'https://s3.tradingview.com/tv.js';
+      script.async = true;
+      script.onload = loadTradingView;
+      document.body.appendChild(script);
+      scriptRef.current = script;
+    } else {
+      loadTradingView();
     }
 
     return () => {
-      if (widgetRef.current && widgetRef.current.remove) {
-        widgetRef.current.remove();
+      isMounted = false;
+      if (containerRef.current) containerRef.current.innerHTML = '';
+      if (scriptRef.current) {
+        scriptRef.current.onload = null;
       }
     };
   }, [symbol]);
@@ -57,10 +63,7 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ symbol }) =>
     <div
       id={`tradingview_${symbol}`}
       ref={containerRef}
-      style={{
-        width: '100%',
-        height: '100%',
-      }}
+      style={{ width: '100%', height: '100%' }}
     />
   );
 };
