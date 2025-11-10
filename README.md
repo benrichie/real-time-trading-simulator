@@ -45,7 +45,7 @@ All sensitive configuration, including API keys and JWT secrets, is managed thro
 - Update frequency is limited to avoid potential service suspension from excessive API calls
 - Connection stability may vary due to hosting limitations
 
-**Upcoming*:*
+**Future developments**:
 - Orderbook
 - Transaction History
 - Long/Short
@@ -53,3 +53,5 @@ All sensitive configuration, including API keys and JWT secrets, is managed thro
 - Comprehensive Testing
 - Circuit breaker
 - Performance testing
+- Custom live graph?
+- Dark mode
