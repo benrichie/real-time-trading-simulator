@@ -23,7 +23,6 @@ import rtp.example.rtp.auth.jwt.JwtAuthenticationFilter;
 
 import java.util.Arrays;
 
-
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity
@@ -48,7 +47,7 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/**", "/api/v1/trading/**")
+                        req.requestMatchers("/api/v1/auth/**", "/api/v1/trading/**", "/ws-trading/**")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
@@ -85,7 +84,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration config)throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
@@ -93,5 +92,4 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
-
 }
