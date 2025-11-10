@@ -37,7 +37,7 @@ public class SystemTradingService {
      * Background task to process pending limit orders.
      * Runs every 30 seconds without user authentication context.
      */
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 60000)
     @Async
     public void processPendingLimitOrders() {
         try {

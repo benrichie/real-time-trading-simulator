@@ -228,7 +228,7 @@ public class RealTimeStockDataService {
     }
 
     // Scheduled update for all active symbols (every 30 seconds) - step 5
-    @Scheduled(fixedRate = 30000)
+    @Scheduled(fixedRate = 60000)
     @Async
     public void updateActiveStockPrices() {
         logger.info("Running scheduled price update task... Active symbols: {}", activeSymbols.size());
