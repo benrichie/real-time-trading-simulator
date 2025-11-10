@@ -48,7 +48,7 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/**")
+                        req.requestMatchers("/api/v1/auth/**", "/ws-trading/**", "/api/v1/ws-trading/**")
                                 .permitAll()
                                 .anyRequest()
                                 .authenticated()
