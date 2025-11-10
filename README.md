@@ -44,3 +44,12 @@ All sensitive configuration, including API keys and JWT secrets, is managed thro
 - Price updates use polling intervals (every 60 seconds) rather than WebSocket streaming
 - Update frequency is limited to avoid potential service suspension from excessive API calls
 - Connection stability may vary due to hosting limitations
+
+**Upcoming*:*
+- Orderbook
+- Transaction History
+- Long/Short
+- Stop loss/Take Profit
+- Comprehensive Testing
+- Circuit breaker
+- Performance testing
