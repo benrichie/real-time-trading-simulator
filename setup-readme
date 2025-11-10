@@ -1,3 +1,5 @@
+/* redundant after deployment */
+
 Prerequisites:
 - Java 21 (Temurin / Eclipse Adoptium)
 - Gradle (wrapper included)
