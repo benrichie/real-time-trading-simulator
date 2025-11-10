@@ -6,7 +6,7 @@ An ongoing full-stack trading simulator that began as a Spring Boot learning pro
 
 ### Tech Stack
 **Frontend:** React, TypeScript, Axios, TradingView Widget  
-**Backend:** Spring Boot, PostgreSQL, JWT Authentication, Finnhub API  
+**Backend:** Java, Spring Boot, PostgreSQL, JWT Authentication, Finnhub API  
 **Infrastructure:** Docker, Render (backend, frontend, and database hosting)
 
 ### Features
