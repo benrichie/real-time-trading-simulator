@@ -67,3 +67,4 @@ export const TradingViewChart: React.FC<TradingViewChartProps> = ({ symbol }) =>
     />
   );
 };
+
