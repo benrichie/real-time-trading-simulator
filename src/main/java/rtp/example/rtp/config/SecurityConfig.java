@@ -47,11 +47,15 @@ public class SecurityConfig {
                         )
                 )
                 .authorizeHttpRequests(req ->
-                        req.requestMatchers("/api/v1/auth/**", "/api/v1/trading/**", "/ws-trading/**")
-                                .permitAll()
-                                .anyRequest()
-                                .authenticated()
+                        req.requestMatchers(
+                                        "/api/v1/auth/**",
+                                        "/api/v1/trading/**",
+                                        "/ws-trading/**",
+                                        "/api/v1/ws-trading/**"
+                                ).permitAll()
+                                .anyRequest().authenticated()
                 )
+
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
