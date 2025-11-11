@@ -20,7 +20,8 @@ apiClient.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
-    console.log('Request:', config.method?.toUpperCase(), config.baseURL + config.url);
+    // Debug logging - remove in production
+    console.log('🚀 API Request:', config.method?.toUpperCase(), `${config.baseURL || ''}${config.url || ''}`);
     return config;
   },
   (error) => {
@@ -32,20 +33,25 @@ apiClient.interceptors.request.use(
 apiClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      localStorage.removeItem('user');
-      window.location.href = '/login';
+    if (error.response) {
+      // Handle 401 Unauthorized - redirect to login
+      if (error.response.status === 401) {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+      }
+
+      // Handle 403 Forbidden
+      if (error.response.status === 403) {
+        console.error('❌ Access denied:', error.response.data?.message || 'Forbidden');
+      }
+
+      console.error('❌ API Error:', error.response.status, error.response.data);
+    } else {
+      console.error('❌ Network Error:', error.message);
     }
 
-    console.error('API Error:', error.response?.status, error.message);
-
-    const message = error.response?.data?.message ||
-                   error.response?.data?.error ||
-                   error.message ||
-                   'An error occurred';
-
-    return Promise.reject(new Error(message));
+    return Promise.reject(error);
   }
 );
 
