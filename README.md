@@ -59,3 +59,4 @@ All sensitive configuration, including API keys and JWT secrets, is managed thro
 - Performance testing
 - Custom live graph?
 - Dark mode
+- Fractional shares
