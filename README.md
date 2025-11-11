@@ -2,7 +2,7 @@
 
 https://trading-platform-frontend-wg73.onrender.com
 
-If the demo requests fail, open the backend link first to wake it and after loaded refresh the frontend. Scheduled background updates (e.g., price and order checks) pause while the backend sleeps.
+If the demo requests fail, open the backend link first to wake it and after loaded, refresh the frontend. Scheduled background updates (e.g., price and order checks) pause while the backend sleeps.
 > https://trading-platform-api-5b23.onrender.com/
 
 An ongoing full-stack trading simulator that began as a Spring Boot learning project. As it slowly developed from backend logic to live deployment, I learned many core concepts and technologies. While currently in early stages, I chose a trading simulator specifically for its potential as a long-term learning platform with room for continuous iteration and expansion.
