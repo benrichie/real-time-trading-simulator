@@ -50,8 +50,7 @@ public class SecurityConfig {
                         req.requestMatchers(
                                         "/api/v1/auth/**",
                                         "/api/v1/trading/**",
-                                        "/ws-trading/**",
-                                        "/api/v1/ws-trading/**"
+                                        "/ws-trading/**"
                                 ).permitAll()
                                 .anyRequest().authenticated()
                 )
@@ -67,7 +66,6 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
                 "https://trading-platform-frontend-wg73.onrender.com"
         ));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
