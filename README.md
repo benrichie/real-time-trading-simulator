@@ -1,62 +1,102 @@
-## Real-Time Trading Simulator
+# Real-Time Trading Simulator
 
-https://trading-platform-frontend-wg73.onrender.com
+Full-stack trading platform demonstrating Spring Boot architecture, real-time systems, and production deployment.
 
-If the demo requests fail, open the backend link first to wake it. After it's loaded, refresh the frontend.
-Scheduled background updates (e.g., price and order checks) pause while the backend sleeps.
-> https://trading-platform-api-5b23.onrender.com/
+## Live Demo
 
-An ongoing full-stack trading simulator that began as a Spring Boot learning project. As it slowly developed from backend logic to live deployment, I learned many core concepts and technologies. While currently in early stages, I chose a trading simulator specifically for its potential as a long-term learning platform with room for continuous iteration and expansion.
+**Frontend:** https://trading-platform-frontend-wg73.onrender.com  
+**Backend:** https://trading-platform-api-5b23.onrender.com
 
-### Tech Stack
-**Frontend:** React, TypeScript, Axios, TradingView Widget  
-**Backend:** Java, Spring Boot, PostgreSQL, JWT Authentication, Finnhub API  
-**Infrastructure:** Docker, Render (backend, frontend, and database hosting)
+⚠️**Cold Start:** Free tier hosting requires 30-60s wake-up time. Open backend link first, then refresh frontend.
 
-### Features
 
-- User registration and JWT-based authentication
-- Automatic portfolio creation with configurable initial balance
-- Real-time stock and cryptocurrency quotes with simulated order execution
-- Portfolio summary with profit/loss tracking and position management
+## Features
+
+### Trading Operations
+- Real-time stock and cryptocurrency quotes via Finnhub API
+- Market and limit order execution with position tracking
+- Portfolio management with profit/loss tracking
 - Integrated TradingView charts for technical analysis
-- Support for market and limit orders across multiple asset classes
 
-### Deployment
+### Security & Authentication
+- JWT-based authentication with Spring Security
+- BCrypt password hashing
+- Automatic portfolio creation with configurable balance
 
-The application is deployed entirely on Render's infrastructure:
+### Real-Time Updates
+- WebSocket integration (STOMP/SockJS) for live price broadcasts
+- Scheduled background tasks for price monitoring (60s intervals)
+- Automatic position valuation updates
 
-- **Frontend**: Static site deployment with automated builds
-- **Backend**: Dockerized Spring Boot application
-- **Database**: Managed PostgreSQL instance
+---
 
-All sensitive configuration, including API keys and JWT secrets, is managed through environment variables. Deployment is fully automated through GitHub integration.
+## Tech Stack
 
-### Known Limitations
+**Backend:** Java, Spring Boot, Spring Security, JWT, JPA/Hibernate, PostgreSQL, WebSocket/STOMP, Finnhub API  
+**Frontend:** React, TypeScript, Axios, TradingView Widget, SockJS  
+**Infrastructure:** Docker, Render (automated deployment)
 
-**Infrastructure Constraints:**
-- Free-tier services sleep after 15 minutes of inactivity, resulting in **30-60 second cold start times**
-- **Limited CPU and memory allocation impacts performance**
-- Database storage restrictions on the free tier
+---
 
-**API and Data:**
-- Finnhub free tier limits API calls to 60 per minute
-- Stock prices may be delayed up to 15 minutes on the free plan
-- Chart data from TradingView may differ from execution prices
+## Architecture
 
-**Real-Time Features:**
-- Price updates use polling intervals (every 60 seconds) rather than WebSocket streaming
-- Update frequency is limited to avoid potential service suspension from excessive API calls
-- Connection stability may vary due to hosting limitations
+- RESTful API with layered architecture (Controller → Service → Repository)
+- Transaction management for database operations
+- Scheduled async tasks for price updates (60s intervals)
+- WebSocket broadcasting via STOMP for live price updates to all connected clients
+- Database staleness check (30s) before fetching from external API
+- Cleanup task on startup removes price data older than 14 days
 
-### Future developments:
-- Orderbook
-- Transaction History
-- Long/Short
-- Stop loss/Take Profit
-- Comprehensive Testing
-- Circuit breaker
-- Performance testing
-- Custom live graph?
+---
+
+## Known Limitations
+
+**Infrastructure:**
+- Free tier: 30-60s cold starts, limited resources
+- Price updates: 60s polling intervals (API rate limits)
+
+**API Constraints:**
+- Finnhub free tier: 60 calls/minute
+- Stock prices may be delayed up to 15 minutes
+- TradingView chart data may differ from execution prices
+
+---
+
+## Roadmap
+
+- Order book visualization
+- Transaction history and analytics
+- Long/Short positions
+- Stop-loss/Take-profit orders
+- Custom real-time charting
+- Comprehensive test coverage
+- Circuit breaker pattern
 - Dark mode
 - Fractional shares
+
+---
+
+## Learning Focus
+
+This project demonstrates:
+- Enterprise Spring Boot architecture
+- Real-time bidirectional communication
+- Security best practices (JWT, BCrypt, CORS)
+- Production deployment and Docker containerization
+- Third-party API integration
+- Database design and ORM
+- Async/scheduled processing
+
+---
+
+## Deployment
+
+Fully automated via GitHub integration with Render:
+- Frontend: Static site with auto-builds
+- Backend: Dockerized Spring Boot app
+- Database: Managed PostgreSQL
+- Config: Environment variables for secrets
+
+---
+
+**Built as an ongoing learning project to understand full-stack development and enterprise application patterns.**
